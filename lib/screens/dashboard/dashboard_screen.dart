@@ -11,6 +11,7 @@ import '../../utils/formatters.dart';
 import '../../utils/money_utils.dart';
 import '../../widgets/budget_alert_banner.dart';
 import '../../widgets/category_chip.dart';
+import '../../widgets/category_pie_chart.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/expense_tile.dart';
 import '../../widgets/weekly_bar_chart.dart';
@@ -322,6 +323,14 @@ class _CategoryBreakdownCard extends StatelessWidget {
     final entries = totalByCategory.entries.where((e) => e.value > 0).toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
+    final slices = [
+      for (final e in entries)
+        PieSlice(
+          category: CategoryService.instance.byName(e.key),
+          amount: e.value,
+        ),
+    ];
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -334,11 +343,20 @@ class _CategoryBreakdownCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             if (entries.isEmpty)
-              Text(
-                'Bu ay harcama yok.',
-                style: TextStyle(color: Theme.of(context).colorScheme.outline),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  'Bu ay harcama yok.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                ),
               )
-            else
+            else ...[
+              Center(child: CategoryPieChart(slices: slices)),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
               for (final e in entries) ...[
                 _CategoryRow(
                   category: CategoryService.instance.byName(e.key),
@@ -347,6 +365,7 @@ class _CategoryBreakdownCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
               ],
+            ],
           ],
         ),
       ),
