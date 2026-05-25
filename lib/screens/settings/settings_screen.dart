@@ -28,12 +28,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
     if (!ok || !mounted) return;
     try {
-      final count =
-          await ExpenseRepository.instance.deleteAllForUser(user.id!);
+      final count = await ExpenseRepository.instance.deleteAllForUser(user.id!);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$count harcama silindi')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('$count harcama silindi')));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -45,7 +44,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _logout() async {
     await AuthService.instance.logout();
     if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
   }
 
   void _showAbout() {
@@ -76,9 +77,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.person_outline),
             title: const Text('Profil'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ProfileScreen()),
-            ),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const ProfileScreen())),
           ),
           const Divider(height: 1),
           const _SectionHeader('Görünüm'),
@@ -149,10 +150,10 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         label.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-              letterSpacing: 1,
-              fontWeight: FontWeight.w700,
-            ),
+          color: Theme.of(context).colorScheme.primary,
+          letterSpacing: 1,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

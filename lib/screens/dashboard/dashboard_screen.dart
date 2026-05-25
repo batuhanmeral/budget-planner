@@ -75,8 +75,10 @@ class DashboardScreenState extends State<DashboardScreen> {
         year: prev.year,
         month: prev.month,
       ),
-      ExpenseRepository.instance
-          .getDailyTotalsForLastNDays(userId: user.id!, days: 7),
+      ExpenseRepository.instance.getDailyTotalsForLastNDays(
+        userId: user.id!,
+        days: 7,
+      ),
       ExpenseRepository.instance.getMonthlyTotalByCategory(
         userId: user.id!,
         year: now.year,
@@ -159,10 +161,7 @@ class DashboardScreenState extends State<DashboardScreen> {
                 total: data.monthlyTotal,
               ),
               const SizedBox(height: 12),
-              _RecentExpensesCard(
-                recent: data.recent,
-                onTap: _openExpense,
-              ),
+              _RecentExpensesCard(recent: data.recent, onTap: _openExpense),
             ],
           ),
         );
@@ -180,8 +179,9 @@ class _GreetingCard extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor:
-              Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: 0.15),
           foregroundColor: Theme.of(context).colorScheme.primary,
           child: const Icon(Icons.waving_hand),
         ),
@@ -233,15 +233,15 @@ class _MonthTotalCard extends StatelessWidget {
             Text(
               'Bu ay toplam',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               Formatters.money(roundMoney(total)),
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             if (d != null)
@@ -251,7 +251,10 @@ class _MonthTotalCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     d.label,
-                    style: TextStyle(color: d.color, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: d.color,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               )
@@ -279,10 +282,7 @@ class _WeeklyChartCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Son 7 gün',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Son 7 gün', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             WeeklyBarChart(data: data),
           ],
@@ -365,8 +365,8 @@ class _CategoryRow extends StatelessWidget {
             '%${(percent * 100).toStringAsFixed(0)}',
             textAlign: TextAlign.right,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+              color: Theme.of(context).colorScheme.outline,
+            ),
           ),
         ),
       ],

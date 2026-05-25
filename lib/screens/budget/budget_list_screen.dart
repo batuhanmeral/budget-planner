@@ -63,9 +63,7 @@ class BudgetListScreenState extends State<BudgetListScreen> {
   Future<void> _edit(Budget budget) async {
     final navigator = Navigator.of(context);
     final saved = await navigator.push<bool>(
-      MaterialPageRoute(
-        builder: (_) => BudgetFormScreen(initial: budget),
-      ),
+      MaterialPageRoute(builder: (_) => BudgetFormScreen(initial: budget)),
     );
     if (saved == true) reload();
   }
@@ -81,8 +79,7 @@ class BudgetListScreenState extends State<BudgetListScreen> {
     );
     if (!ok || !mounted) return;
     try {
-      await BudgetRepository.instance
-          .delete(id: budget.id!, userId: user.id!);
+      await BudgetRepository.instance.delete(id: budget.id!, userId: user.id!);
       reload();
     } catch (_) {
       if (!mounted) return;

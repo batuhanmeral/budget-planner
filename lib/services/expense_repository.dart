@@ -3,13 +3,7 @@ import '../utils/date_utils.dart';
 import '../utils/money_utils.dart';
 import 'database_service.dart';
 
-enum ExpenseSort {
-  dateDesc,
-  dateAsc,
-  amountDesc,
-  amountAsc,
-  category,
-}
+enum ExpenseSort { dateDesc, dateAsc, amountDesc, amountAsc, category }
 
 extension on ExpenseSort {
   String get sql {
@@ -69,11 +63,7 @@ class ExpenseRepository {
 
   Future<int> deleteAllForUser(int userId) async {
     final db = await DatabaseService.instance.database;
-    return db.delete(
-      'expenses',
-      where: 'user_id = ?',
-      whereArgs: [userId],
-    );
+    return db.delete('expenses', where: 'user_id = ?', whereArgs: [userId]);
   }
 
   Future<Expense?> getById({required int id, required int userId}) async {

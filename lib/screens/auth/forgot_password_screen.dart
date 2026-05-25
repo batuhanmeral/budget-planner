@@ -87,8 +87,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       );
       if (!mounted) return;
       _snack('Parola güncellendi. Lütfen giriş yapın.');
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
     } on AuthException catch (e) {
       _snack(e.message);
       setState(() => _step = _Step.answer);
@@ -135,9 +136,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: _busy ? null : _loadQuestion,
-          child: _busy
-              ? const _Spinner()
-              : const Text('Devam'),
+          child: _busy ? const _Spinner() : const Text('Devam'),
         ),
       ],
     );
@@ -147,10 +146,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          _question ?? '',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(_question ?? '', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 16),
         TextFormField(
           controller: _answerCtrl,
@@ -216,8 +212,8 @@ class _Spinner extends StatelessWidget {
   const _Spinner();
   @override
   Widget build(BuildContext context) => const SizedBox(
-        height: 20,
-        width: 20,
-        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-      );
+    height: 20,
+    width: 20,
+    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+  );
 }

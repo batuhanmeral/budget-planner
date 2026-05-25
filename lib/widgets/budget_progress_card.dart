@@ -45,8 +45,11 @@ class BudgetProgressCard extends StatelessWidget {
                 if (_isOver)
                   const Icon(Icons.error_outline, color: Colors.red, size: 20)
                 else if (_isWarning)
-                  const Icon(Icons.warning_amber_rounded,
-                      color: Colors.orange, size: 20),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 20,
+                  ),
                 if (onEdit != null)
                   IconButton(
                     tooltip: 'Düzenle',
@@ -67,7 +70,9 @@ class BudgetProgressCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: _ratio,
                 minHeight: 10,
-                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation(_barColor(context)),
               ),
             ),
@@ -84,9 +89,9 @@ class BudgetProgressCard extends StatelessWidget {
                       ? 'Limit aşıldı'
                       : 'Kalan ${Formatters.money(remaining)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: _isOver ? Colors.red : null,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: _isOver ? Colors.red : null,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),

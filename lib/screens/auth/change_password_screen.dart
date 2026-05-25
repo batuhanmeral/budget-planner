@@ -51,9 +51,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         newPassword: _newCtrl.text,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Parola güncellendi')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Parola güncellendi')));
       Navigator.of(context).pop(true);
     } on AuthException catch (e) {
       _snack(e.message);
@@ -95,9 +95,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       labelText: 'Mevcut parola',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscureOld
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        icon: Icon(
+                          _obscureOld ? Icons.visibility : Icons.visibility_off,
+                        ),
                         onPressed: () =>
                             setState(() => _obscureOld = !_obscureOld),
                       ),
@@ -112,9 +112,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       labelText: 'Yeni parola',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscureNew
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        icon: Icon(
+                          _obscureNew ? Icons.visibility : Icons.visibility_off,
+                        ),
                         onPressed: () =>
                             setState(() => _obscureNew = !_obscureNew),
                       ),
@@ -129,9 +129,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       labelText: 'Yeni parola (tekrar)',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscureNew2
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        icon: Icon(
+                          _obscureNew2
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
                         onPressed: () =>
                             setState(() => _obscureNew2 = !_obscureNew2),
                       ),

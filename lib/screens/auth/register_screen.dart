@@ -64,8 +64,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         securityAnswer: _answerCtrl.text,
       );
       if (!mounted) return;
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil(AppRoutes.home, (_) => false);
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.home, (_) => false);
     } on AuthException catch (e) {
       _showError(e.message);
     } catch (_) {
@@ -76,8 +77,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

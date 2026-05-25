@@ -157,8 +157,9 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
                           selected: _category == c.name,
                           onSelected: (_) {
                             setState(
-                              () => _category =
-                                  _category == c.name ? null : c.name,
+                              () => _category = _category == c.name
+                                  ? null
+                                  : c.name,
                             );
                             reload();
                           },
@@ -179,9 +180,7 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (snapshot.hasError) {
-                return const Center(
-                  child: Text('Veriler yüklenemedi.'),
-                );
+                return const Center(child: Text('Veriler yüklenemedi.'));
               }
               final items = snapshot.data ?? const <Expense>[];
               if (items.isEmpty) {

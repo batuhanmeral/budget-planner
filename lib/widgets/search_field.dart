@@ -52,10 +52,7 @@ class _SearchFieldState extends State<SearchField> {
         prefixIcon: const Icon(Icons.search),
         suffixIcon: _ctrl.text.isEmpty
             ? null
-            : IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: _clear,
-              ),
+            : IconButton(icon: const Icon(Icons.clear), onPressed: _clear),
         isDense: true,
       ),
     );

@@ -9,11 +9,7 @@ class WeeklyBarChart extends StatelessWidget {
   final List<DailyTotal> data;
   final double height;
 
-  const WeeklyBarChart({
-    super.key,
-    required this.data,
-    this.height = 160,
-  });
+  const WeeklyBarChart({super.key, required this.data, this.height = 160});
 
   @override
   Widget build(BuildContext context) {

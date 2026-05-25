@@ -25,19 +25,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       await AuthService.instance.deleteAccount(password);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Hesabınız silindi.')),
-      );
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Hesabınız silindi.')));
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
     } on AuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Hesap silinemedi. Lütfen tekrar deneyin.')),
+        const SnackBar(
+          content: Text('Hesap silinemedi. Lütfen tekrar deneyin.'),
+        ),
       );
     }
   }
@@ -64,7 +68,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: InputDecoration(
                   labelText: 'Parola onayı',
                   suffixIcon: IconButton(
-                    icon: Icon(obscure ? Icons.visibility : Icons.visibility_off),
+                    icon: Icon(
+                      obscure ? Icons.visibility : Icons.visibility_off,
+                    ),
                     onPressed: () => setLocal(() => obscure = !obscure),
                   ),
                 ),
@@ -99,8 +105,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Center(
             child: CircleAvatar(
               radius: 36,
-              backgroundColor:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.15),
               foregroundColor: Theme.of(context).colorScheme.primary,
               child: const Icon(Icons.person, size: 36),
             ),
@@ -117,8 +124,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Text(
                 'Üye: ${Formatters.dateLong(user.createdAt!.toLocal())}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                  color: Theme.of(context).colorScheme.outline,
+                ),
               ),
             ),
           const SizedBox(height: 24),

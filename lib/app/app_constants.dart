@@ -81,10 +81,7 @@ class AppCategories {
   ];
 
   static AppCategory byName(String name) {
-    return all.firstWhere(
-      (c) => c.name == name,
-      orElse: () => diger,
-    );
+    return all.firstWhere((c) => c.name == name, orElse: () => diger);
   }
 }
 

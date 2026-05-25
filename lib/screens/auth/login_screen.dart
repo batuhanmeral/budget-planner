@@ -35,8 +35,9 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordCtrl.text,
       );
       if (!mounted) return;
-      Navigator.of(context)
-          .pushNamedAndRemoveUntil(AppRoutes.home, (_) => false);
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.home, (_) => false);
     } on AuthException catch (e) {
       _showError(e.message);
     } catch (_) {
@@ -48,7 +49,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -111,8 +114,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: TextButton(
                       onPressed: _busy
                           ? null
-                          : () => Navigator.of(context)
-                              .pushNamed(AppRoutes.forgotPassword),
+                          : () => Navigator.of(
+                              context,
+                            ).pushNamed(AppRoutes.forgotPassword),
                       child: const Text('Parolamı unuttum'),
                     ),
                   ),
@@ -138,8 +142,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextButton(
                         onPressed: _busy
                             ? null
-                            : () => Navigator.of(context)
-                                .pushNamed(AppRoutes.register),
+                            : () => Navigator.of(
+                                context,
+                              ).pushNamed(AppRoutes.register),
                         child: const Text('Kayıt ol'),
                       ),
                     ],

@@ -31,16 +31,16 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
   Future<Expense?> _load() {
     final user = AuthService.instance.currentUser;
     if (user == null) return Future.value(null);
-    return ExpenseRepository.instance
-        .getById(id: widget.expenseId, userId: user.id!);
+    return ExpenseRepository.instance.getById(
+      id: widget.expenseId,
+      userId: user.id!,
+    );
   }
 
   Future<void> _edit(Expense expense) async {
     final navigator = Navigator.of(context);
     final result = await navigator.push<bool>(
-      MaterialPageRoute(
-        builder: (_) => ExpenseFormScreen(initial: expense),
-      ),
+      MaterialPageRoute(builder: (_) => ExpenseFormScreen(initial: expense)),
     );
     if (result == true) {
       setState(() {
@@ -60,8 +60,10 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
     );
     if (!ok || !mounted) return;
     try {
-      await ExpenseRepository.instance
-          .delete(id: expense.id!, userId: user.id!);
+      await ExpenseRepository.instance.delete(
+        id: expense.id!,
+        userId: user.id!,
+      );
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (_) {
@@ -107,8 +109,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                         children: [
                           CircleAvatar(
                             radius: 28,
-                            backgroundColor:
-                                cat.color.withValues(alpha: 0.15),
+                            backgroundColor: cat.color.withValues(alpha: 0.15),
                             foregroundColor: cat.color,
                             child: Icon(cat.icon, size: 28),
                           ),
@@ -158,8 +159,10 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: OutlinedButton.icon(
-                              icon: const Icon(Icons.delete_outline,
-                                  color: Colors.red),
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.red,
+                              ),
                               label: const Text(
                                 'Sil',
                                 style: TextStyle(color: Colors.red),
@@ -206,8 +209,8 @@ class _DetailRow extends StatelessWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                  color: Theme.of(context).colorScheme.outline,
+                ),
               ),
               const SizedBox(height: 2),
               Text(value, style: Theme.of(context).textTheme.bodyLarge),

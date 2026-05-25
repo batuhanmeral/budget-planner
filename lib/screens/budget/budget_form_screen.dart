@@ -127,9 +127,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
         if (ok && mounted) navigator.pop();
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(_isEdit ? 'Bütçeyi Düzenle' : 'Yeni Bütçe'),
-        ),
+        appBar: AppBar(title: Text(_isEdit ? 'Bütçeyi Düzenle' : 'Yeni Bütçe')),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),

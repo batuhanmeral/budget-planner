@@ -38,8 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (user == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
       });
       return const SizedBox.shrink();
     }
@@ -70,13 +71,13 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: switch (_index) {
         1 => FloatingActionButton(
-            onPressed: () => _expensesKey.currentState?.openAdd(),
-            child: const Icon(Icons.add),
-          ),
+          onPressed: () => _expensesKey.currentState?.openAdd(),
+          child: const Icon(Icons.add),
+        ),
         2 => FloatingActionButton(
-            onPressed: () => _budgetKey.currentState?.openAddSmart(),
-            child: const Icon(Icons.add),
-          ),
+          onPressed: () => _budgetKey.currentState?.openAddSmart(),
+          child: const Icon(Icons.add),
+        ),
         _ => null,
       },
       bottomNavigationBar: NavigationBar(
@@ -103,4 +104,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
