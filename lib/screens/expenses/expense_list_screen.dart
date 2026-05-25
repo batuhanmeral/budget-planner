@@ -8,19 +8,20 @@ import '../../widgets/date_range_filter.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/expense_tile.dart';
 import '../../widgets/search_field.dart';
+import 'expense_calendar_view.dart';
 import 'expense_detail_screen.dart';
 import 'expense_form_screen.dart';
+
+/// Harcama görüntüleme modu — üstteki SegmentedButton'dan seçilir.
+enum _ViewMode { list, calendar }
 
 /// Harcamalar sekmesinin içeriği. HomeScreen'in IndexedStack'i içine
 /// yerleştirilir; kendi Scaffold'u yoktur.
 ///
-/// Üstte filtre alanı:
-/// - Arama field'ı (açıklamada LIKE)
-/// - Sıralama PopupMenuButton (5 seçenek)
-/// - Tarih aralığı seçici (Bu Hafta / Bu Ay / Özel)
-/// - Kategori ChoiceChip satırı (yatay scroll)
-///
-/// Altta FutureBuilder ile filtrelenmiş + sıralı liste, RefreshIndicator'lı.
+/// İki görünüm: **Liste** (arama+filtre+sıralama+liste) ve **Takvim**
+/// (ay grid + gün bottom sheet). Üstteki [SegmentedButton] ile geçilir.
+/// Filtreler sadece liste görünümünde etkilidir; takvim kendi ay
+/// navigasyonunu yönetir.
 ///
 /// State public ([ExpenseListScreenState]) çünkü HomeScreen FAB'ı
 /// GlobalKey üzerinden `openAdd()` ve `reload()` çağırıyor.
@@ -36,6 +37,7 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
   DateRangeValue? _range;
   String _query = '';
   ExpenseSort _sort = ExpenseSort.dateDesc;
+  _ViewMode _view = _ViewMode.list;
   late Future<List<Expense>> _future;
 
   @override
@@ -86,8 +88,41 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
 
     return Column(
       children: [
+        // Liste/Takvim toggle — her zaman görünür.
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: SegmentedButton<_ViewMode>(
+            segments: const [
+              ButtonSegment(
+                value: _ViewMode.list,
+                label: Text('Liste'),
+                icon: Icon(Icons.list),
+              ),
+              ButtonSegment(
+                value: _ViewMode.calendar,
+                label: Text('Takvim'),
+                icon: Icon(Icons.calendar_month),
+              ),
+            ],
+            selected: {_view},
+            onSelectionChanged: (s) => setState(() => _view = s.first),
+          ),
+        ),
+        Expanded(
+          child: _view == _ViewMode.calendar
+              ? const ExpenseCalendarView()
+              : _buildListBody(),
+        ),
+      ],
+    );
+  }
+
+  /// Liste modunun gövdesi — filtreler + FutureBuilder.
+  Widget _buildListBody() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
