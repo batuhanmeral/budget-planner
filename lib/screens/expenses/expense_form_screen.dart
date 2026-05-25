@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../app/app_constants.dart';
 import '../../models/expense.dart';
 import '../../services/auth_service.dart';
+import '../../services/category_service.dart';
 import '../../services/expense_repository.dart';
 import '../../utils/date_utils.dart' as du;
 import '../../utils/formatters.dart';
@@ -54,7 +55,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     _noteCtrl = TextEditingController(text: e?.note ?? '');
     _category = e == null
         ? AppCategories.yemek
-        : AppCategories.byName(e.category);
+        : CategoryService.instance.byName(e.category);
     _date = du.stripTime(e?.date ?? DateTime.now());
     _initialSignature = _signature();
     _amountCtrl.addListener(_markDirty);
@@ -178,7 +179,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                       prefixIcon: Icon(Icons.category_outlined),
                     ),
                     items: [
-                      for (final c in AppCategories.all)
+                      for (final c in CategoryService.instance.all)
                         DropdownMenuItem(
                           value: c,
                           child: Row(

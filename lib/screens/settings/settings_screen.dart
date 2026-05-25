@@ -6,6 +6,7 @@ import '../../app/theme_controller.dart';
 import '../../services/auth_service.dart';
 import '../../services/expense_repository.dart';
 import '../../widgets/confirm_dialog.dart';
+import 'categories_screen.dart';
 import 'profile_screen.dart';
 
 /// Ayarlar ekranı.
@@ -91,6 +92,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () => Navigator.of(
               context,
             ).push(MaterialPageRoute(builder: (_) => const ProfileScreen())),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.category_outlined),
+            title: const Text('Kategoriler'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const CategoriesScreen()),
+            ),
           ),
           const Divider(height: 1),
           const _SectionHeader('Görünüm'),

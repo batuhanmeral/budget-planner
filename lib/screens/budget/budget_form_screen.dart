@@ -5,6 +5,7 @@ import '../../app/app_constants.dart';
 import '../../models/budget.dart';
 import '../../services/auth_service.dart';
 import '../../services/budget_repository.dart';
+import '../../services/category_service.dart';
 import '../../utils/money_utils.dart';
 import '../../utils/validators.dart';
 import '../../widgets/category_chip.dart';
@@ -57,10 +58,10 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
     );
 
     if (_isEdit) {
-      _category = AppCategories.byName(initial!.category);
+      _category = CategoryService.instance.byName(initial!.category);
       _selectableCategories = [_category];
     } else {
-      _selectableCategories = AppCategories.all
+      _selectableCategories = CategoryService.instance.all
           .where((c) => !widget.existingCategories.contains(c.name))
           .toList();
       _category = _selectableCategories.isNotEmpty

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../app/app_constants.dart';
 import '../models/expense.dart';
+import '../services/category_service.dart';
 import '../utils/formatters.dart';
 import 'category_chip.dart';
 
@@ -20,7 +20,7 @@ class ExpenseTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cat = AppCategories.byName(expense.category);
+    final cat = CategoryService.instance.byName(expense.category);
     return Card(
       child: ListTile(
         onTap: onTap,

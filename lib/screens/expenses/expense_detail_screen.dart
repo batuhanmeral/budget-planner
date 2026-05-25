@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../app/app_constants.dart';
 import '../../models/expense.dart';
 import '../../services/auth_service.dart';
+import '../../services/category_service.dart';
 import '../../services/expense_repository.dart';
 import '../../utils/formatters.dart';
 import '../../widgets/category_chip.dart';
@@ -104,7 +104,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                 child: Text('Bu harcama bulunamadı veya silinmiş.'),
               );
             }
-            final cat = AppCategories.byName(e.category);
+            final cat = CategoryService.instance.byName(e.category);
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Card(

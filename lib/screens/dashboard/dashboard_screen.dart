@@ -5,6 +5,7 @@ import '../../models/budget.dart';
 import '../../models/expense.dart';
 import '../../services/auth_service.dart';
 import '../../services/budget_repository.dart';
+import '../../services/category_service.dart';
 import '../../services/expense_repository.dart';
 import '../../utils/formatters.dart';
 import '../../utils/money_utils.dart';
@@ -340,7 +341,7 @@ class _CategoryBreakdownCard extends StatelessWidget {
             else
               for (final e in entries) ...[
                 _CategoryRow(
-                  category: AppCategories.byName(e.key),
+                  category: CategoryService.instance.byName(e.key),
                   amount: e.value,
                   percent: total <= 0 ? 0 : (e.value / total),
                 ),

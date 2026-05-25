@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app/app_constants.dart';
 import '../models/user.dart';
+import 'category_service.dart';
 import 'password_hasher.dart';
 import 'user_repository.dart';
 
@@ -56,6 +57,7 @@ class AuthService {
       return null;
     }
     _currentUser = user;
+    await CategoryService.instance.loadForUser(user.id!);
     return user;
   }
 
@@ -94,6 +96,7 @@ class AuthService {
     }
     _currentUser = saved;
     await _persistSession(id);
+    await CategoryService.instance.loadForUser(saved.id!);
     return saved;
   }
 
@@ -148,6 +151,7 @@ class AuthService {
     final fresh = await UserRepository.instance.findById(user.id!);
     _currentUser = fresh;
     await _persistSession(user.id!);
+    await CategoryService.instance.loadForUser(user.id!);
     return fresh!;
   }
 
@@ -155,6 +159,7 @@ class AuthService {
   /// LoginScreen'e yönlendirir.
   Future<void> logout() async {
     _currentUser = null;
+    CategoryService.instance.clear();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(PrefsKeys.lastUserId);
   }
@@ -205,6 +210,7 @@ class AuthService {
 
     await UserRepository.instance.delete(user.id!);
     _currentUser = null;
+    CategoryService.instance.clear();
     // Prefs'te kalan stale lastUserId'yi de temizle.
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(PrefsKeys.lastUserId);

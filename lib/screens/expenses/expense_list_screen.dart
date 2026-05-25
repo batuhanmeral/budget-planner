@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../app/app_constants.dart';
 import '../../models/expense.dart';
 import '../../services/auth_service.dart';
+import '../../services/category_service.dart';
 import '../../services/expense_repository.dart';
 import '../../widgets/date_range_filter.dart';
 import '../../widgets/empty_state.dart';
@@ -147,38 +147,43 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
               const SizedBox(height: 8),
               SizedBox(
                 height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: ChoiceChip(
-                        label: const Text('Tümü'),
-                        selected: _category == null,
-                        onSelected: (_) {
-                          setState(() => _category = null);
-                          reload();
-                        },
-                      ),
-                    ),
-                    for (final c in AppCategories.all)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: ChoiceChip(
-                          avatar: Icon(c.icon, size: 16, color: c.color),
-                          label: Text(c.name),
-                          selected: _category == c.name,
-                          onSelected: (_) {
-                            setState(
-                              () => _category = _category == c.name
-                                  ? null
-                                  : c.name,
-                            );
-                            reload();
-                          },
+                child: AnimatedBuilder(
+                  animation: CategoryService.instance,
+                  builder: (context, _) {
+                    return ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: ChoiceChip(
+                            label: const Text('Tümü'),
+                            selected: _category == null,
+                            onSelected: (_) {
+                              setState(() => _category = null);
+                              reload();
+                            },
+                          ),
                         ),
-                      ),
-                  ],
+                        for (final c in CategoryService.instance.all)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: ChoiceChip(
+                              avatar: Icon(c.icon, size: 16, color: c.color),
+                              label: Text(c.name),
+                              selected: _category == c.name,
+                              onSelected: (_) {
+                                setState(
+                                  () => _category = _category == c.name
+                                      ? null
+                                      : c.name,
+                                );
+                                reload();
+                              },
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ],

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../app/app_constants.dart';
 import '../../models/budget.dart';
 import '../../services/auth_service.dart';
 import '../../services/budget_repository.dart';
+import '../../services/category_service.dart';
 import '../../services/expense_repository.dart';
 import '../../widgets/budget_alert_banner.dart';
 import '../../widgets/budget_progress_card.dart';
@@ -145,7 +145,7 @@ class BudgetListScreenState extends State<BudgetListScreen> {
                     vertical: 4,
                   ),
                   child: BudgetProgressCard(
-                    category: AppCategories.byName(b.category),
+                    category: CategoryService.instance.byName(b.category),
                     spent: data.monthlyTotals[b.category] ?? 0,
                     limit: b.monthlyLimit,
                     onEdit: () => _edit(b),
