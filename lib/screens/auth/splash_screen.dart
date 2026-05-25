@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_routes.dart';
 import '../../services/auth_service.dart';
+import '../../services/recurring_expense_runner.dart';
 
 /// Uygulama açılışında gösterilen, auto-login kontrolü yapan ekran.
 ///
@@ -26,6 +27,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _bootstrap() async {
     final user = await AuthService.instance.tryAutoLogin();
+    if (user != null) {
+      // Bu ay vakti gelmiş ama henüz eklenmemiş tekrarlayan harcamaları
+      // otomatik olarak Expense tablosuna ekle. Sessiz çalışır.
+      await RecurringExpenseRunner.runForUser(user.id!);
+    }
     if (!mounted) return;
     final route = user != null ? AppRoutes.home : AppRoutes.login;
     Navigator.of(context).pushNamedAndRemoveUntil(route, (_) => false);

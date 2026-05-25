@@ -6,6 +6,7 @@ import '../../app/theme_controller.dart';
 import '../../services/auth_service.dart';
 import '../../services/expense_repository.dart';
 import '../../widgets/confirm_dialog.dart';
+import '../recurring/recurring_list_screen.dart';
 import 'categories_screen.dart';
 import 'profile_screen.dart';
 
@@ -100,6 +101,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const CategoriesScreen()),
+            ),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.repeat),
+            title: const Text('Tekrarlayan Harcamalar'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const RecurringListScreen()),
             ),
           ),
           const Divider(height: 1),
