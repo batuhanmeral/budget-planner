@@ -67,6 +67,15 @@ class ExpenseRepository {
     );
   }
 
+  Future<int> deleteAllForUser(int userId) async {
+    final db = await DatabaseService.instance.database;
+    return db.delete(
+      'expenses',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+  }
+
   Future<Expense?> getById({required int id, required int userId}) async {
     final db = await DatabaseService.instance.database;
     final rows = await db.query(

@@ -5,6 +5,7 @@ import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/settings/settings_screen.dart';
 
 class AppRoutes {
   AppRoutes._();
@@ -47,6 +48,11 @@ class AppRoutes {
         return MaterialPageRoute(
           settings: settings,
           builder: (_) => const HomeScreen(),
+        );
+      case AppRoutes.settings:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const SettingsScreen(),
         );
       default:
         return MaterialPageRoute(

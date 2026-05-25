@@ -48,13 +48,14 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text(_titles[_index]),
         actions: [
           IconButton(
-            tooltip: 'Çıkış Yap',
-            icon: const Icon(Icons.logout),
+            tooltip: 'Ayarlar',
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () async {
-              await AuthService.instance.logout();
-              if (!context.mounted) return;
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+              await Navigator.of(context).pushNamed(AppRoutes.settings);
+              if (!mounted) return;
+              _dashboardKey.currentState?.reload();
+              _expensesKey.currentState?.reload();
+              _budgetKey.currentState?.reload();
             },
           ),
         ],
