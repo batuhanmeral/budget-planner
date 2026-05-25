@@ -7,6 +7,18 @@ import '../budget/budget_list_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../expenses/expense_list_screen.dart';
 
+/// Uygulamanın ana iskeleti — login sonrası buraya gelinir.
+///
+/// Üç sekme: Özet (Dashboard), Harcamalar, Bütçe. Sekmeler
+/// [IndexedStack] içinde tutulur — sekme değişiminde state korunur
+/// (kullanıcı filtre/arama girdisini kaybetmez).
+///
+/// FAB sekmeye göre değişir: Harcamalar → ekle, Bütçe → ekle, Dashboard → yok.
+/// AppBar'da ayarlar ikonu; ayarlar'dan dönüldüğünde sekmeler reload edilir
+/// (silinen veriler yansısın diye).
+///
+/// Korumalı ekran kuralı: `currentUser == null` olursa hot-restart
+/// senaryosunda login'e geri yönlendirir.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 

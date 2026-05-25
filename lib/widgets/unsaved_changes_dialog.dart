@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
-/// Form ekranlarında kullanıcı bir alana yazdıktan sonra geri tuşuna basarsa
-/// gösterilen onay diyalogu. `true` dönerse çıkışa izin verilir.
+/// Form ekranlarında kullanıcı bir alana yazdıktan sonra geri tuşuna
+/// basarsa gösterilen "kaydedilmemiş değişiklikler" onay diyalogu.
+///
+/// Form ekranları [PopScope] ile `canPop: !isDirty` belirtir; pop
+/// engellenirse bu diyalog gösterilir ve yanıt true ise pop manuel
+/// yapılır.
+///
+/// Kullanıcı "Çık"ı seçerse `true`, "Vazgeç" veya dışarı tıklarsa
+/// `false` döner.
 Future<bool> confirmDiscardChanges(BuildContext context) async {
   final result = await showDialog<bool>(
     context: context,

@@ -1,10 +1,25 @@
 import '../utils/date_utils.dart';
 
+/// Kullanıcının bir kategori için belirlediği aylık bütçe hedefini
+/// temsil eden immutable veri sınıfı.
+///
+/// SQLite'taki `budgets` tablosuyla eşleşir. `UNIQUE(user_id, category)`
+/// kısıtı sayesinde bir kullanıcının aynı kategori için tek bütçesi
+/// olabilir; tekrar girilince upsert ile güncellenir.
 class Budget {
+  /// Birincil anahtar. Yeni bütçelerde null.
   final int? id;
+
+  /// Bütçenin sahibi olan kullanıcının ID'si.
   final int userId;
+
+  /// Hangi kategori için limit (örn. "Yemek").
   final String category;
+
+  /// Aylık üst sınır (TL). 0'dan büyük olmalı — DB'de CHECK ile zorlu.
   final double monthlyLimit;
+
+  /// Son güncelleme zamanı (UTC). Upsert sırasında otomatik tazelenir.
   final DateTime? updatedAt;
 
   const Budget({

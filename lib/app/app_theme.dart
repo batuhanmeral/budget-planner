@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
 
+/// Uygulamanın Light ve Dark temalarını üretir.
+///
+/// Material 3 (`useMaterial3: true`) ve [ColorScheme.fromSeed] kullanır;
+/// tek bir `primary` renkten Material'ın renk sistemi otomatik türetilir.
+///
+/// Card, InputDecoration ve ElevatedButton için merkezi stiller burada
+/// tanımlanır — ekran kodlarının kendi stil tekrarlarını yapmasına gerek
+/// kalmaz.
 class AppTheme {
   AppTheme._();
 
+  /// Marka rengi: canlı teal. ColorScheme seed olarak verilir.
   static const primary = Color(0xFF0EA5A4);
+
+  // Arka plan tonları (slate paleti) — Material default'tan biraz daha
+  // koyu, modern bir his için.
   static const lightBackground = Color(0xFFF8FAFC);
   static const darkBackground = Color(0xFF0F172A);
 
+  /// Aydınlık tema fabrikası.
   static ThemeData light() {
     final scheme = ColorScheme.fromSeed(
       seedColor: primary,
@@ -60,6 +73,8 @@ class AppTheme {
     );
   }
 
+  /// Karanlık tema fabrikası — Light ile aynı yapı, dark surface'lar.
+  /// Kategori renkleri her iki temada da yeterli kontrasta sahip.
   static ThemeData dark() {
     final scheme = ColorScheme.fromSeed(
       seedColor: primary,

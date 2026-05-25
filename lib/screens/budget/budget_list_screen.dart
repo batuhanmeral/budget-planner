@@ -11,12 +11,19 @@ import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_state.dart';
 import 'budget_form_screen.dart';
 
+/// Bütçe listesinin tek seferde yüklediği veriler — bütçeler ve bu
+/// ayki kategori bazlı toplamlar (doluluk hesabı için).
 class _BudgetListData {
   final List<Budget> budgets;
   final Map<String, double> monthlyTotals;
   const _BudgetListData(this.budgets, this.monthlyTotals);
 }
 
+/// Bütçe sekmesinin içeriği. Üstte [BudgetAlertBanner], altta her
+/// bütçe için [BudgetProgressCard] ile doluluk gösterimi.
+///
+/// HomeScreen GlobalKey üzerinden [openAddSmart] ile FAB'ı tetikler
+/// (mevcut kategorileri form'a iletir — dropdown elemesi için).
 class BudgetListScreen extends StatefulWidget {
   const BudgetListScreen({super.key});
 

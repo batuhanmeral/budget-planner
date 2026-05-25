@@ -10,6 +10,16 @@ import '../../utils/validators.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/unsaved_changes_dialog.dart';
 
+/// Bütçe ekleme/düzenleme formu.
+///
+/// [initial] dolu → düzenleme; kategori değiştirilemez (chip olarak
+/// gösterilir). Null → ekleme; [existingCategories] içinde olan
+/// kategoriler dropdown'dan elenir, çünkü `UNIQUE(user_id, category)`
+/// var. Eğer tüm kategoriler kullanılmışsa form yerine bilgi mesajı
+/// gösterilir.
+///
+/// Submit'te repository [upsert] çağrılır — insert/update kararını
+/// SQLite verir.
 class BudgetFormScreen extends StatefulWidget {
   final Budget? initial;
   final List<String> existingCategories;

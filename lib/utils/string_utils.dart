@@ -1,10 +1,26 @@
-/// Kullanıcı adı ve güvenlik cevabı gibi alanları karşılaştırmaya hazır hale
-/// getirir.
+// Türkçe metin karşılaştırması için yardımcılar.
+//
+// Dart'ın String.toLowerCase() metodu Türkçe locale-aware değildir.
+// Örneğin "İSTANBUL".toLowerCase() sonucu "i̇stanbul" olur (i karakterine
+// üst nokta combining character olarak eklenir). Bu durumda "istanbul"
+// ile karşılaştırma başarısız olur.
+//
+// Çözüm: Türkçe karakterleri ASCII karşılıklarına dönüştürüp sonra
+// lowercase yaparak güvenli bir karşılaştırma anahtarı üretmek.
+
+/// Kullanıcı adı, güvenlik cevabı vb. alanları karşılaştırmaya hazırlar.
 ///
-/// `String.toLowerCase()` Türkçe locale-aware değildir; "İSTANBUL" sonucu
-/// "i̇stanbul" (i + combining dot) olur ve "istanbul" ile eşleşmez. Bu fonksiyon
-/// önce Türkçe karakterleri ASCII karşılığına çevirir, sonra lowercase yapar.
+/// Türkçe karakterleri ASCII'ye çevirir, başındaki/sonundaki boşlukları
+/// siler ve tümünü küçük harfe dönüştürür. Hem kayıt hem doğrulama
+/// adımında aynı fonksiyon kullanılmalıdır; aksi takdirde "İSTANBUL"
+/// ve "istanbul" eşleşmez.
+///
+/// Örnek:
+/// ```
+/// normalizeIdentifier('İSTANBUL') == normalizeIdentifier('istanbul')
+/// ```
 String normalizeIdentifier(String input) {
+  // Türkçe karakter haritalaması — toLowerCase'in locale problemini bypass eder.
   final swapped = input
       .replaceAll('İ', 'i')
       .replaceAll('I', 'i')

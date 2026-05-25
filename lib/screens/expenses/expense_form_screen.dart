@@ -11,6 +11,17 @@ import '../../utils/money_utils.dart';
 import '../../utils/validators.dart';
 import '../../widgets/unsaved_changes_dialog.dart';
 
+/// Harcama ekleme/düzenleme ortak formu.
+///
+/// [initial] null → ekleme modu. Dolu verilirse → düzenleme modu;
+/// ID korunur, sadece alanlar update edilir.
+///
+/// Alanlar: tutar (TR virgül destekli, sayısal klavye), kategori
+/// (dropdown), tarih (showDatePicker → stripTime), açıklama (max 200).
+///
+/// "Dirty tracking" için form alanları başlangıçta bir signature
+/// stringi ile karşılaştırılır; değişiklik varsa [PopScope] geri tuşunu
+/// engeller ve onay diyalogu gösterir.
 class ExpenseFormScreen extends StatefulWidget {
   final Expense? initial;
 

@@ -5,6 +5,14 @@ import '../../services/auth_service.dart';
 import '../../utils/formatters.dart';
 import '../auth/change_password_screen.dart';
 
+/// Kullanıcı profil ekranı.
+///
+/// Üstte avatar + username + üyelik tarihi. Altta iki action:
+/// - Parolayı değiştir → [ChangePasswordScreen]
+/// - Hesabı sil → parola onaylı diyalog → [AuthService.deleteAccount]
+///
+/// Hesap silme cascade ile tüm verileri (harcamalar + bütçeler) düşürür
+/// ve kullanıcıyı login ekranına yönlendirir.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 

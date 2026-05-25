@@ -15,6 +15,8 @@ import '../../widgets/expense_tile.dart';
 import '../../widgets/weekly_bar_chart.dart';
 import '../expenses/expense_detail_screen.dart';
 
+/// Dashboard'un tek seferde yüklediği tüm verileri taşıyan immutable
+/// veri sınıfı. `Future.wait` ile paralel sorgular sonucu üretilir.
 class _DashboardData {
   final double monthlyTotal;
   final double previousMonthTotal;
@@ -33,6 +35,19 @@ class _DashboardData {
   });
 }
 
+/// Özet ekranı — kullanıcının bu ayki finansal durumuna tek bakışta
+/// erişim sağlar.
+///
+/// İçerikler (yukarıdan aşağıya):
+/// 1. Karşılama (Merhaba, {username})
+/// 2. Bu ay toplam + geçen aya göre yüzde değişim
+/// 3. Bütçe uyarı banner'ı (varsa)
+/// 4. Son 7 gün bar grafiği
+/// 5. Kategori dağılımı (toplam + yüzde)
+/// 6. Son 5 harcama (tıklanabilir)
+///
+/// Tüm sorgular [Future.wait] ile paralel çalışır — DB rountrip sayısı
+/// minimize edilir.
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 

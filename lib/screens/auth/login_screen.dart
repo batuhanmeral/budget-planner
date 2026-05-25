@@ -5,6 +5,14 @@ import '../../app/app_routes.dart';
 import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
 
+/// Giriş ekranı — kullanıcı adı + parola.
+///
+/// Form validate edildikten sonra [AuthService.login] çağrılır;
+/// [AuthException] yakalanır ve mesaj SnackBar ile gösterilir
+/// (yanlış parola, kilitli hesap, vb.).
+///
+/// Altta "Parolamı Unuttum" ve "Kayıt Ol" linkleri. Parola alanında
+/// göster/gizle toggle (göz ikonu).
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 

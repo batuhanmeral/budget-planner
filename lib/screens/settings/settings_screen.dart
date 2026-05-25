@@ -8,6 +8,17 @@ import '../../services/expense_repository.dart';
 import '../../widgets/confirm_dialog.dart';
 import 'profile_screen.dart';
 
+/// Ayarlar ekranı.
+///
+/// Bölümler:
+/// - Profil linki (kullanıcı bilgileri + hesap işlemleri)
+/// - Görünüm: tema seçimi ([RadioGroup] ile Sistem/Aydınlık/Karanlık)
+/// - Veri: "Tüm harcamalarımı sil" (onaylı, yalnızca aktif kullanıcı)
+/// - Hesap: Çıkış Yap
+/// - Hakkında: standart [showAboutDialog]
+///
+/// "Tüm harcamalarımı sil" bütçeleri korur; hesabı silmek tüm verileri
+/// götürür (Profil ekranında).
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 

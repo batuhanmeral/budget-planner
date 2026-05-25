@@ -4,6 +4,14 @@ import '../../app/app_routes.dart';
 import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
 
+/// "Parolamı Unuttum" akışı — üç adımlı wizard.
+///
+/// 1. Kullanıcı adı → DB'den güvenlik sorusunu çek
+/// 2. Sorunun cevabını gir → minimum validasyon
+/// 3. Yeni parolayı belirle → sıfırla, login'e dön
+///
+/// Yanlış cevap girilirse 2. adımdan generic hata ile devam edilir
+/// (kullanıcı adı veya cevap doğru mu sızıntı yapılmaz).
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 

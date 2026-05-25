@@ -11,6 +11,19 @@ import '../../widgets/search_field.dart';
 import 'expense_detail_screen.dart';
 import 'expense_form_screen.dart';
 
+/// Harcamalar sekmesinin içeriği. HomeScreen'in IndexedStack'i içine
+/// yerleştirilir; kendi Scaffold'u yoktur.
+///
+/// Üstte filtre alanı:
+/// - Arama field'ı (açıklamada LIKE)
+/// - Sıralama PopupMenuButton (5 seçenek)
+/// - Tarih aralığı seçici (Bu Hafta / Bu Ay / Özel)
+/// - Kategori ChoiceChip satırı (yatay scroll)
+///
+/// Altta FutureBuilder ile filtrelenmiş + sıralı liste, RefreshIndicator'lı.
+///
+/// State public ([ExpenseListScreenState]) çünkü HomeScreen FAB'ı
+/// GlobalKey üzerinden `openAdd()` ve `reload()` çağırıyor.
 class ExpenseListScreen extends StatefulWidget {
   const ExpenseListScreen({super.key});
 

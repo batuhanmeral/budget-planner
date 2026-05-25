@@ -5,6 +5,13 @@ import '../models/expense.dart';
 import '../utils/formatters.dart';
 import 'category_chip.dart';
 
+/// Listede tek bir harcamayı gösteren kart.
+///
+/// Sol: kategori renkli daire ikon. Sağ üst: tutar (kalın). Altta:
+/// kategori chip + tarih + (varsa) açıklama (max 2 satır). En sağda:
+/// chevron ikonu — tıklanabilir olduğunu gösterir.
+///
+/// [onTap] verilirse detaya yönlendirir; null verilirse pasif.
 class ExpenseTile extends StatelessWidget {
   final Expense expense;
   final VoidCallback? onTap;

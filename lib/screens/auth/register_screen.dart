@@ -6,6 +6,16 @@ import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
 import '../../widgets/unsaved_changes_dialog.dart';
 
+/// Kayıt ekranı.
+///
+/// Alanlar: kullanıcı adı, parola, parola tekrar, güvenlik sorusu
+/// (dropdown), cevap. Güvenlik sorusu parola sıfırlama için kritik.
+///
+/// Başarılı kayıt sonrası otomatik login yapılır ve Home'a yönlendirilir
+/// (back stack temizlenir — kullanıcı geri tuşuyla register'a dönemez).
+///
+/// [PopScope] ile kullanıcı bir şey yazdıysa geri tuşuna basınca onay
+/// diyalogu çıkar.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 

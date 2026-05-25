@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 import '../utils/date_utils.dart' as du;
 import '../utils/formatters.dart';
 
+/// Hızlı tarih aralığı önayarları.
 enum DateRangePreset { thisWeek, thisMonth, custom }
 
+/// Tarih aralığı seçim sonucu — önayar türü + başlangıç/bitiş tarihi.
+///
+/// Custom değilse [from] ve [to] otomatik [du.startOfWeek/startOfMonth]
+/// gibi yardımcılardan üretilir.
 class DateRangeValue {
   final DateRangePreset preset;
   final DateTime from;
@@ -34,6 +39,10 @@ class DateRangeValue {
   }
 }
 
+/// Üç ChoiceChip'ten oluşan tarih filtresi: **Bu Hafta · Bu Ay · Özel**.
+///
+/// Özel seçildiğinde [showDateRangePicker] açılır; iptal edilirse mevcut
+/// değer korunur, seçilirse [onChanged] tetiklenir.
 class DateRangeFilter extends StatelessWidget {
   final DateRangeValue value;
   final ValueChanged<DateRangeValue> onChanged;

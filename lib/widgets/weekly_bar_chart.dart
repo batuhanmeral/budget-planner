@@ -5,6 +5,15 @@ import '../app/app_constants.dart';
 import '../services/expense_repository.dart';
 import '../utils/formatters.dart';
 
+/// Son 7 gün için günlük toplam harcama bar grafiği.
+///
+/// Üçüncü parti charting paketi (fl_chart vb.) **KULLANILMAZ** —
+/// müfredat kapsamı dışına çıkmamak için saf Flutter widget'larıyla
+/// (Row + Container + LayoutBuilder) çizilir.
+///
+/// En yüksek değer 100% yüksekliği belirler; diğer barlar orantılı.
+/// Sıfır olan günler küçük gri çubuk ile gösterilir (var olduğunu
+/// belirtmek için).
 class WeeklyBarChart extends StatelessWidget {
   final List<DailyTotal> data;
   final double height;

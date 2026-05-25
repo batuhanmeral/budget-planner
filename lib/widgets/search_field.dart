@@ -2,6 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+/// Debounce'lu arama TextField'ı.
+///
+/// Her tuş vuruşunda DB sorgusu yapmamak için 300ms (varsayılan) bekler;
+/// kullanıcı yazmaya devam ederse timer resetlenir. Yalnızca tuş
+/// vuruşları durduğunda [onChanged] tetiklenir.
+///
+/// Sağda otomatik "temizle" (X) butonu — metin varken görünür.
 class SearchField extends StatefulWidget {
   final String hint;
   final Duration debounce;

@@ -3,6 +3,13 @@ import 'package:flutter/material.dart';
 import '../../app/app_routes.dart';
 import '../../services/auth_service.dart';
 
+/// Uygulama açılışında gösterilen, auto-login kontrolü yapan ekran.
+///
+/// `tryAutoLogin` sonucuna göre Home'a veya Login'e yönlendirir; back
+/// stack'i temizleyerek splash'a geri dönmeyi engeller.
+///
+/// İlk frame'den sonra çalışsın diye `addPostFrameCallback` kullanılır
+/// — initState'te doğrudan Navigator çağırmak hata verir.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 

@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 
+/// Genel amaçlı onay diyalogu helper'ı.
+///
+/// Silme gibi geri alınamaz işlemler için kullanılır. `destructive`
+/// true (varsayılan) onay butonunu kırmızı yapar.
+///
+/// Kullanıcı "Vazgeç"e bastıysa veya diyalogu kapattıysa `false` döner;
+/// onay butonuna bastıysa `true`.
 Future<bool> showConfirmDialog(
   BuildContext context, {
   required String title,

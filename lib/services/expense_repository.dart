@@ -3,9 +3,16 @@ import '../utils/date_utils.dart';
 import '../utils/money_utils.dart';
 import 'database_service.dart';
 
+/// Harcama listesinin sıralama seçenekleri.
+///
+/// UI'daki sıralama menüsünden geliyor. Enum kullanılarak SQL injection
+/// önleniyor — kullanıcının yazdığı bir string ORDER BY'a girmiyor.
 enum ExpenseSort { dateDesc, dateAsc, amountDesc, amountAsc, category }
 
 extension on ExpenseSort {
+  /// Her enum değerinin karşılığı olan SQL ORDER BY ifadesi.
+  /// `id DESC` ikincil anahtar: aynı tarihte birden fazla harcama varsa
+  /// yeni eklenen üstte görünür.
   String get sql {
     switch (this) {
       case ExpenseSort.dateDesc:
@@ -22,22 +29,36 @@ extension on ExpenseSort {
   }
 }
 
+/// Bir gün için toplam harcama. Dashboard'daki haftalık bar grafiği bu
+/// listeyi tüketir.
 class DailyTotal {
   final DateTime date;
   final double total;
   const DailyTotal(this.date, this.total);
 }
 
+/// `expenses` tablosu için CRUD + sorgu metodları.
+///
+/// **Tüm metodlar `userId` parametresi alır** ve sorgularına
+/// `WHERE user_id = ?` ekler. Bu, veri izolasyon kuralının taşıyıcısıdır;
+/// bir kullanıcı asla başka kullanıcının verisini göremez/değiştiremez.
 class ExpenseRepository {
   ExpenseRepository._();
   static final instance = ExpenseRepository._();
 
+  /// Yeni harcama ekler. `created_at` UTC olarak set edilir, ID DB'den
+  /// AUTOINCREMENT olarak gelir.
   Future<int> insert(Expense expense) async {
     final db = await DatabaseService.instance.database;
     final data = expense.toMap()..['created_at'] = nowUtcIso();
     return db.insert('expenses', data);
   }
 
+  /// Mevcut harcamayı günceller. `id == null` ise programcı hatası
+  /// (ekleme yerine güncelleme çağrılmış) — ArgumentError.
+  ///
+  /// WHERE koşulu hem `id` hem `user_id`'yi içerir: başka kullanıcının
+  /// kaydı yanlışlıkla güncellenmez.
   Future<int> update(Expense expense) async {
     if (expense.id == null) {
       throw ArgumentError('update için id zorunlu');
@@ -52,6 +73,7 @@ class ExpenseRepository {
     );
   }
 
+  /// Tek harcama silme. `user_id` koşulu sahiplik güvencesidir.
   Future<int> delete({required int id, required int userId}) async {
     final db = await DatabaseService.instance.database;
     return db.delete(
@@ -61,11 +83,14 @@ class ExpenseRepository {
     );
   }
 
+  /// "Tüm harcamalarımı sil" akışı için — yalnızca aktif kullanıcının
+  /// kayıtları silinir, bütçeleri korunur.
   Future<int> deleteAllForUser(int userId) async {
     final db = await DatabaseService.instance.database;
     return db.delete('expenses', where: 'user_id = ?', whereArgs: [userId]);
   }
 
+  /// Tek bir harcamayı detay ekranı için yükler.
   Future<Expense?> getById({required int id, required int userId}) async {
     final db = await DatabaseService.instance.database;
     final rows = await db.query(
@@ -78,6 +103,7 @@ class ExpenseRepository {
     return Expense.fromMap(rows.first);
   }
 
+  /// Kullanıcının tüm harcamaları — yeni tarihler üstte.
   Future<List<Expense>> getAllForUser(int userId) async {
     final db = await DatabaseService.instance.database;
     final rows = await db.query(
@@ -89,6 +115,8 @@ class ExpenseRepository {
     return rows.map(Expense.fromMap).toList();
   }
 
+  /// İki tarih arasındaki harcamalar (inclusive). Dashboard ve filtre
+  /// için kullanılır.
   Future<List<Expense>> getByDateRange({
     required int userId,
     required DateTime from,
@@ -104,6 +132,7 @@ class ExpenseRepository {
     return rows.map(Expense.fromMap).toList();
   }
 
+  /// Tek bir kategorideki harcamalar.
   Future<List<Expense>> getByCategory({
     required int userId,
     required String category,
@@ -118,6 +147,12 @@ class ExpenseRepository {
     return rows.map(Expense.fromMap).toList();
   }
 
+  /// Belirtilen ayın toplam harcaması. Dashboard'daki "Bu ay toplam"
+  /// ve aylık karşılaştırma için kullanılır.
+  ///
+  /// SQL'de `LIKE '2026-05%'` ile filtreliyoruz; `date` formatı
+  /// `YYYY-MM-DD` olduğu için bu prefix güvenli ve hızlı.
+  /// `COALESCE` boş sonuçta 0 döner.
   Future<double> getMonthlyTotal({
     required int userId,
     required int year,
@@ -134,6 +169,9 @@ class ExpenseRepository {
     return roundMoney(total);
   }
 
+  /// Kategori bazında aylık toplam (dashboard dağılım listesi ve bütçe
+  /// doluluk hesabı için). Sadece harcama yapılmış kategoriler dönüş
+  /// haritasında bulunur.
   Future<Map<String, double>> getMonthlyTotalByCategory({
     required int userId,
     required int year,
@@ -153,6 +191,10 @@ class ExpenseRepository {
     };
   }
 
+  /// Son N günün günlük toplamları. Haftalık bar grafiği için.
+  ///
+  /// DB harcama olmayan günleri döndürmez; bu yüzden sonra 0'larla
+  /// doldurulur — grafik her gün için bir bar göstermek zorunda.
   Future<List<DailyTotal>> getDailyTotalsForLastNDays({
     required int userId,
     required int days,
@@ -166,6 +208,8 @@ class ExpenseRepository {
       'GROUP BY date',
       [userId, formatDateOnly(from), formatDateOnly(today)],
     );
+    // DB sonucu önce map'e alıp, sonra tüm günleri (boş olanlar dahil)
+    // sırayla üret.
     final byDate = <String, double>{
       for (final r in rows)
         r['date'] as String: roundMoney((r['total'] as num).toDouble()),
@@ -179,6 +223,12 @@ class ExpenseRepository {
     return result;
   }
 
+  /// Açıklamada metin arama (case-insensitive LIKE).
+  ///
+  /// LIKE pattern'ında `%` ve `_` özel karakterleri vardır; kullanıcı
+  /// notuna "%50 indirim" gibi bir şey yazmışsa olduğu gibi aranmalı.
+  /// Bu yüzden bu karakterler `\` ile escape edilir ve `ESCAPE '\'`
+  /// clause kullanılır.
   Future<List<Expense>> search({
     required int userId,
     required String query,
@@ -200,6 +250,10 @@ class ExpenseRepository {
   }
 
   /// Liste ekranı için tek noktadan filtre + sıralama.
+  ///
+  /// Tüm filtre alanları opsiyoneldir — verilenler WHERE'e eklenir.
+  /// ORDER BY [ExpenseSort] enum'ından geldiği için SQL injection
+  /// imkansız.
   Future<List<Expense>> getFilteredAndSorted({
     required int userId,
     String? category,
@@ -225,6 +279,7 @@ class ExpenseRepository {
       args.add(formatDateOnly(to));
     }
     if (noteQuery != null && noteQuery.trim().isNotEmpty) {
+      // LIKE özel karakterleri escape — search() ile aynı strateji.
       final escaped = noteQuery
           .replaceAll(r'\', r'\\')
           .replaceAll('%', r'\%')
