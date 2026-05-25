@@ -15,6 +15,7 @@ import '../../widgets/category_pie_chart.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/expense_tile.dart';
 import '../../widgets/weekly_bar_chart.dart';
+import '../../widgets/yearly_bar_chart.dart';
 import '../expenses/expense_detail_screen.dart';
 
 /// Dashboard'un tek seferde yüklediği tüm verileri taşıyan immutable
@@ -173,6 +174,8 @@ class DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 4),
               _WeeklyChartCard(data: data.dailyTotals),
               const SizedBox(height: 12),
+              const _YearlyChartCard(),
+              const SizedBox(height: 12),
               _CategoryBreakdownCard(
                 totalByCategory: data.monthlyByCategory,
                 total: data.monthlyTotal,
@@ -302,6 +305,115 @@ class _WeeklyChartCard extends StatelessWidget {
             Text('Son 7 gün', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             WeeklyBarChart(data: data),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Dashboard'da yıllık 12 ay özetini gösteren kart.
+///
+/// Kendi state'i ile çalışır — dış [_DashboardData]'dan bağımsız yıl
+/// seçimi yapılabilsin. Yıl değişince yalnızca bu kart yeniden yüklenir.
+class _YearlyChartCard extends StatefulWidget {
+  const _YearlyChartCard();
+
+  @override
+  State<_YearlyChartCard> createState() => _YearlyChartCardState();
+}
+
+class _YearlyChartCardState extends State<_YearlyChartCard> {
+  late int _year;
+  late Future<List<MonthTotal>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _year = DateTime.now().year;
+    _future = _load();
+  }
+
+  Future<List<MonthTotal>> _load() {
+    final user = AuthService.instance.currentUser;
+    if (user == null) return Future.value(const <MonthTotal>[]);
+    return ExpenseRepository.instance.getYearlyTotalsByMonth(
+      userId: user.id!,
+      year: _year,
+    );
+  }
+
+  void _shiftYear(int delta) {
+    setState(() {
+      _year += delta;
+      _future = _load();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Yıllık özet',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const Spacer(),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: () => _shiftYear(-1),
+                ),
+                Text(
+                  '$_year',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(Icons.chevron_right),
+                  // Gelecek yıllara da gitmesine izin ver — veri 0 görünür.
+                  onPressed: () => _shiftYear(1),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            FutureBuilder<List<MonthTotal>>(
+              future: _future,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const SizedBox(
+                    height: 160,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                final data = snapshot.data ?? const <MonthTotal>[];
+                final yearTotal = data.fold<double>(
+                  0,
+                  (s, m) => s + m.total,
+                );
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Yıl toplamı: ${Formatters.money(yearTotal)}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    YearlyBarChart(data: data),
+                  ],
+                );
+              },
+            ),
           ],
         ),
       ),

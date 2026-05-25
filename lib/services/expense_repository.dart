@@ -37,6 +37,14 @@ class DailyTotal {
   const DailyTotal(this.date, this.total);
 }
 
+/// Bir ay için toplam harcama. Yıllık bar grafiğinde her sütun bir
+/// [MonthTotal]'dir.
+class MonthTotal {
+  final int month; // 1-12
+  final double total;
+  const MonthTotal({required this.month, required this.total});
+}
+
 /// `expenses` tablosu için CRUD + sorgu metodları.
 ///
 /// **Tüm metodlar `userId` parametresi alır** ve sorgularına
@@ -195,6 +203,34 @@ class ExpenseRepository {
   ///
   /// DB harcama olmayan günleri döndürmez; bu yüzden sonra 0'larla
   /// doldurulur — grafik her gün için bir bar göstermek zorunda.
+  /// Belirli bir yılın 12 ayı için toplam harcama listesi (Ocak..Aralık).
+  ///
+  /// SQL `substr(date, 6, 2)` ile ay parçası çekilir; `date` formatı
+  /// `YYYY-MM-DD` olduğu için bu güvenli. Harcama olmayan aylar için
+  /// 0 ile doldurulur — grafik her ayı göstersin diye.
+  Future<List<MonthTotal>> getYearlyTotalsByMonth({
+    required int userId,
+    required int year,
+  }) async {
+    final db = await DatabaseService.instance.database;
+    final rows = await db.rawQuery(
+      "SELECT substr(date, 6, 2) AS m, SUM(amount) AS total FROM expenses "
+      "WHERE user_id = ? AND date LIKE ? "
+      "GROUP BY m",
+      [userId, '$year-%'],
+    );
+    final byMonth = <int, double>{
+      for (final r in rows)
+        int.parse(r['m'] as String): roundMoney(
+          (r['total'] as num).toDouble(),
+        ),
+    };
+    return List.generate(
+      12,
+      (i) => MonthTotal(month: i + 1, total: byMonth[i + 1] ?? 0.0),
+    );
+  }
+
   Future<List<DailyTotal>> getDailyTotalsForLastNDays({
     required int userId,
     required int days,
