@@ -4,6 +4,7 @@ import '../../app/app_constants.dart';
 import '../../app/app_routes.dart';
 import '../../services/auth_service.dart';
 import '../budget/budget_list_screen.dart';
+import '../dashboard/dashboard_screen.dart';
 import '../expenses/expense_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,8 +16,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
+  final _dashboardKey = GlobalKey<DashboardScreenState>();
   final _expensesKey = GlobalKey<ExpenseListScreenState>();
   final _budgetKey = GlobalKey<BudgetListScreenState>();
+
+  void _onTabChange(int i) {
+    setState(() => _index = i);
+    if (i == 0) _dashboardKey.currentState?.reload();
+    if (i == 2) _budgetKey.currentState?.reload();
+  }
 
   static const _titles = <String>[
     AppStrings.tabDashboard,
@@ -54,10 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(
         index: _index,
         children: [
-          const _PlaceholderPage(
-            icon: Icons.pie_chart_outline,
-            label: 'Özet ekranı Faz 8\'de gelecek.',
-          ),
+          DashboardScreen(key: _dashboardKey),
           ExpenseListScreen(key: _expensesKey),
           BudgetListScreen(key: _budgetKey),
         ],
@@ -75,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        onDestinationSelected: _onTabChange,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.pie_chart_outline),
@@ -98,24 +103,3 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _PlaceholderPage extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _PlaceholderPage({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.outline;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 64, color: color),
-          const SizedBox(height: 12),
-          Text(label, style: TextStyle(color: color)),
-        ],
-      ),
-    );
-  }
-}
