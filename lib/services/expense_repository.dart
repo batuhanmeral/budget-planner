@@ -203,6 +203,25 @@ class ExpenseRepository {
   ///
   /// DB harcama olmayan günleri döndürmez; bu yüzden sonra 0'larla
   /// doldurulur — grafik her gün için bir bar göstermek zorunda.
+  /// Kullanıcının en sık kullandığı kategorilerin adları — en sıktan
+  /// az sığa doğru sıralı. Dashboard'daki "Hızlı Ekle" satırı bunu
+  /// tüketir. Hiç harcama yoksa boş liste döner.
+  Future<List<String>> getMostUsedCategoryNames({
+    required int userId,
+    int limit = 4,
+  }) async {
+    final db = await DatabaseService.instance.database;
+    final rows = await db.rawQuery(
+      'SELECT category, COUNT(*) AS c FROM expenses '
+      'WHERE user_id = ? '
+      'GROUP BY category '
+      'ORDER BY c DESC '
+      'LIMIT ?',
+      [userId, limit],
+    );
+    return rows.map((r) => r['category'] as String).toList();
+  }
+
   /// Belirli bir yılın 12 ayı için toplam harcama listesi (Ocak..Aralık).
   ///
   /// SQL `substr(date, 6, 2)` ile ay parçası çekilir; `date` formatı

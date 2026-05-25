@@ -14,6 +14,7 @@ import '../../widgets/category_chip.dart';
 import '../../widgets/category_pie_chart.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/expense_tile.dart';
+import '../../widgets/quick_add_sheet.dart';
 import '../../widgets/weekly_bar_chart.dart';
 import '../../widgets/yearly_bar_chart.dart';
 import '../expenses/expense_detail_screen.dart';
@@ -27,6 +28,7 @@ class _DashboardData {
   final Map<String, double> monthlyByCategory;
   final List<Expense> recent;
   final List<Budget> budgets;
+  final List<String> mostUsedCategoryNames;
 
   const _DashboardData({
     required this.monthlyTotal,
@@ -35,6 +37,7 @@ class _DashboardData {
     required this.monthlyByCategory,
     required this.recent,
     required this.budgets,
+    required this.mostUsedCategoryNames,
   });
 }
 
@@ -77,6 +80,7 @@ class DashboardScreenState extends State<DashboardScreen> {
         monthlyByCategory: {},
         recent: [],
         budgets: [],
+        mostUsedCategoryNames: [],
       );
     }
     final now = DateTime.now();
@@ -104,6 +108,10 @@ class DashboardScreenState extends State<DashboardScreen> {
       ),
       ExpenseRepository.instance.getAllForUser(user.id!),
       BudgetRepository.instance.getAllForUser(user.id!),
+      ExpenseRepository.instance.getMostUsedCategoryNames(
+        userId: user.id!,
+        limit: 4,
+      ),
     ]);
 
     final all = results[4] as List<Expense>;
@@ -114,6 +122,7 @@ class DashboardScreenState extends State<DashboardScreen> {
       monthlyByCategory: results[3] as Map<String, double>,
       recent: all.take(5).toList(),
       budgets: results[5] as List<Budget>,
+      mostUsedCategoryNames: results[6] as List<String>,
     );
   }
 
@@ -164,6 +173,11 @@ class DashboardScreenState extends State<DashboardScreen> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
             children: [
               _GreetingCard(username: user.username),
+              const SizedBox(height: 12),
+              _QuickAddCard(
+                mostUsedCategoryNames: data.mostUsedCategoryNames,
+                onSaved: reload,
+              ),
               const SizedBox(height: 12),
               _MonthTotalCard(
                 total: data.monthlyTotal,
@@ -305,6 +319,78 @@ class _WeeklyChartCard extends StatelessWidget {
             Text('Son 7 gün', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             WeeklyBarChart(data: data),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Dashboard'da "Hızlı Ekle" satırı — kullanıcının en sık kullandığı
+/// kategoriler için chip'ler. Tek dokunuş bottom sheet'i açar; içine
+/// sadece tutar/not yazılır, kategori + tarih (bugün) sabit gelir.
+///
+/// Kullanıcının hiç harcaması yoksa varsayılan 4 sabit kategori
+/// (Yemek, Ulaşım, Market, Fatura) gösterilir — yeni kullanıcı için
+/// kısa yol sağlanır.
+class _QuickAddCard extends StatelessWidget {
+  final List<String> mostUsedCategoryNames;
+  final VoidCallback onSaved;
+
+  const _QuickAddCard({
+    required this.mostUsedCategoryNames,
+    required this.onSaved,
+  });
+
+  static const _defaultFallback = ['Yemek', 'Ulaşım', 'Market', 'Fatura'];
+
+  @override
+  Widget build(BuildContext context) {
+    final names = mostUsedCategoryNames.isEmpty
+        ? _defaultFallback
+        : mostUsedCategoryNames;
+    final categories = names
+        .map(CategoryService.instance.byName)
+        .toList(growable: false);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.flash_on, size: 18),
+                const SizedBox(width: 6),
+                Text(
+                  'Hızlı Ekle',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 40,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: categories.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (_, i) {
+                  final c = categories[i];
+                  return ActionChip(
+                    avatar: Icon(c.icon, color: c.color, size: 18),
+                    label: Text(c.name),
+                    onPressed: () async {
+                      final saved = await showQuickAddSheet(
+                        context,
+                        category: c,
+                      );
+                      if (saved) onSaved();
+                    },
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
