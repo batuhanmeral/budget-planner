@@ -14,9 +14,9 @@ class DatabaseService {
   static final instance = DatabaseService._();
 
   // Veritabanı dosyasının adı ve şema versiyonu.
-  // İleride şema değişirse [_dbVersion] artırılır ve onUpgrade eklenir.
+  // v2 (Faz 11): custom_categories + recurring_expenses tabloları eklendi.
   static const _dbName = 'budget_planner.db';
-  static const _dbVersion = 1;
+  static const _dbVersion = 2;
 
   Database? _db;
 
@@ -34,6 +34,7 @@ class DatabaseService {
       version: _dbVersion,
       onConfigure: _onConfigure,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -107,6 +108,67 @@ class DatabaseService {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     ''');
+
+    // v2 tablolarını da burada oluştur (yeni kurulumda tek seferde gelsin).
+    await _createV2Tables(db);
+  }
+
+  /// v1 → v2 göçü. Mevcut kullanıcıların DB'sini yeniden kurmadan
+  /// yeni özellikleri kullanabilmesi için tabloları ekler.
+  ///
+  /// SQLite ALTER TABLE sınırlı olduğu için sadece yeni tablo ekleyebiliyoruz
+  /// — sütun ekleme gerekirse `ALTER TABLE ... ADD COLUMN` kullanılır.
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _createV2Tables(db);
+    }
+  }
+
+  /// v2 ile gelen tablolar — özel kategoriler ve tekrarlayan harcamalar.
+  ///
+  /// Hem [_onCreate] hem [_onUpgrade] tarafından çağrılır; tekrar
+  /// tanımlamamak için ayrı bir metoda çıkarıldı.
+  Future<void> _createV2Tables(Database db) async {
+    // ÖZEL KATEGORİLER
+    // Kullanıcının kendi tanımladığı kategoriler. Sabit kategorilerle
+    // birleşik gösterilir; expense.category alanında aynı string referans
+    // tutulur. icon_code → Material Icons codePoint, color_int → ARGB.
+    await db.execute('''
+      CREATE TABLE custom_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        icon_code INTEGER NOT NULL,
+        color_int INTEGER NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (user_id, name),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    ''');
+
+    // TEKRARLAYAN HARCAMALAR
+    // - day_of_month: 1-31 arası — şablon, ayın belirli gününde otomatik
+    //   üretilir. 30/31 olmayan aylarda son güne kaydırılır.
+    // - last_inserted_year_month: 'YYYY-MM' formatında, en son hangi ay
+    //   için insert yapıldığını tutar; çift insert'i önler.
+    // - active: kullanıcı aktif/pasif yapabilir; silmeden kapatma.
+    await db.execute('''
+      CREATE TABLE recurring_expenses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        amount REAL NOT NULL CHECK(amount > 0),
+        category TEXT NOT NULL,
+        note TEXT,
+        day_of_month INTEGER NOT NULL CHECK(day_of_month BETWEEN 1 AND 31),
+        last_inserted_year_month TEXT,
+        active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX idx_recurring_user ON recurring_expenses(user_id, active)',
+    );
   }
 
   /// DB bağlantısını kapatır. Test veya cleanup senaryolarında kullanılır.
