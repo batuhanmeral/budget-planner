@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_constants.dart';
+import '../../app/app_routes.dart';
+import '../../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -35,8 +37,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = AuthService.instance.currentUser;
+    if (user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+      });
+      return const SizedBox.shrink();
+    }
     return Scaffold(
-      appBar: AppBar(title: Text(_titles[_index])),
+      appBar: AppBar(
+        title: Text(_titles[_index]),
+        actions: [
+          IconButton(
+            tooltip: 'Çıkış Yap',
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await AuthService.instance.logout();
+              if (!context.mounted) return;
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+            },
+          ),
+        ],
+      ),
       body: _placeholders[_index],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
