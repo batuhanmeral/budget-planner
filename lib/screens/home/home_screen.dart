@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/app_constants.dart';
 import '../../app/app_routes.dart';
 import '../../services/auth_service.dart';
+import '../budget/budget_list_screen.dart';
 import '../expenses/expense_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
   final _expensesKey = GlobalKey<ExpenseListScreenState>();
+  final _budgetKey = GlobalKey<BudgetListScreenState>();
 
   static const _titles = <String>[
     AppStrings.tabDashboard,
@@ -57,18 +59,20 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Özet ekranı Faz 8\'de gelecek.',
           ),
           ExpenseListScreen(key: _expensesKey),
-          const _PlaceholderPage(
-            icon: Icons.savings_outlined,
-            label: 'Bütçe ekranı Faz 7\'de gelecek.',
-          ),
+          BudgetListScreen(key: _budgetKey),
         ],
       ),
-      floatingActionButton: _index == 1
-          ? FloatingActionButton(
-              onPressed: () => _expensesKey.currentState?.openAdd(),
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton: switch (_index) {
+        1 => FloatingActionButton(
+            onPressed: () => _expensesKey.currentState?.openAdd(),
+            child: const Icon(Icons.add),
+          ),
+        2 => FloatingActionButton(
+            onPressed: () => _budgetKey.currentState?.openAddSmart(),
+            child: const Icon(Icons.add),
+          ),
+        _ => null,
+      },
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
