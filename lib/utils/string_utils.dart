@@ -1,0 +1,23 @@
+/// Kullanıcı adı ve güvenlik cevabı gibi alanları karşılaştırmaya hazır hale
+/// getirir.
+///
+/// `String.toLowerCase()` Türkçe locale-aware değildir; "İSTANBUL" sonucu
+/// "i̇stanbul" (i + combining dot) olur ve "istanbul" ile eşleşmez. Bu fonksiyon
+/// önce Türkçe karakterleri ASCII karşılığına çevirir, sonra lowercase yapar.
+String normalizeIdentifier(String input) {
+  final swapped = input
+      .replaceAll('İ', 'i')
+      .replaceAll('I', 'i')
+      .replaceAll('ı', 'i')
+      .replaceAll('Ş', 's')
+      .replaceAll('ş', 's')
+      .replaceAll('Ğ', 'g')
+      .replaceAll('ğ', 'g')
+      .replaceAll('Ü', 'u')
+      .replaceAll('ü', 'u')
+      .replaceAll('Ö', 'o')
+      .replaceAll('ö', 'o')
+      .replaceAll('Ç', 'c')
+      .replaceAll('ç', 'c');
+  return swapped.trim().toLowerCase();
+}

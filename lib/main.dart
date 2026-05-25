@@ -7,12 +7,15 @@ import 'app/app_constants.dart';
 import 'app/app_routes.dart';
 import 'app/app_theme.dart';
 import 'app/theme_controller.dart';
+import 'services/database_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting(AppStrings.locale, null);
   Intl.defaultLocale = AppStrings.locale;
   await ThemeController.instance.load();
+  final db = await DatabaseService.instance.database;
+  debugPrint('SQLite ready at ${db.path}');
   runApp(const BudgetPlannerApp());
 }
 
