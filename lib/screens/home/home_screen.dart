@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/app_constants.dart';
 import '../../app/app_routes.dart';
 import '../../services/auth_service.dart';
+import '../expenses/expense_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,26 +14,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
+  final _expensesKey = GlobalKey<ExpenseListScreenState>();
 
   static const _titles = <String>[
     AppStrings.tabDashboard,
     AppStrings.tabExpenses,
     AppStrings.tabBudget,
-  ];
-
-  static const _placeholders = <Widget>[
-    _PlaceholderPage(
-      icon: Icons.pie_chart_outline,
-      label: 'Özet ekranı Faz 8\'de gelecek.',
-    ),
-    _PlaceholderPage(
-      icon: Icons.list_alt,
-      label: 'Harcamalar ekranı Faz 6\'da gelecek.',
-    ),
-    _PlaceholderPage(
-      icon: Icons.savings_outlined,
-      label: 'Bütçe ekranı Faz 7\'de gelecek.',
-    ),
   ];
 
   @override
@@ -62,7 +49,26 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _placeholders[_index],
+      body: IndexedStack(
+        index: _index,
+        children: [
+          const _PlaceholderPage(
+            icon: Icons.pie_chart_outline,
+            label: 'Özet ekranı Faz 8\'de gelecek.',
+          ),
+          ExpenseListScreen(key: _expensesKey),
+          const _PlaceholderPage(
+            icon: Icons.savings_outlined,
+            label: 'Bütçe ekranı Faz 7\'de gelecek.',
+          ),
+        ],
+      ),
+      floatingActionButton: _index == 1
+          ? FloatingActionButton(
+              onPressed: () => _expensesKey.currentState?.openAdd(),
+              child: const Icon(Icons.add),
+            )
+          : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
