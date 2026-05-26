@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app/app_constants.dart';
+import '../app/locale_controller.dart';
 import '../models/expense.dart';
 import '../services/auth_service.dart';
 import '../services/expense_repository.dart';
@@ -81,7 +82,7 @@ class _QuickAddSheetState extends State<_QuickAddSheet> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kaydedilemedi')),
+        SnackBar(content: Text(LocaleController.instance.l10n.notSaved)),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -90,6 +91,7 @@ class _QuickAddSheetState extends State<_QuickAddSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -103,7 +105,7 @@ class _QuickAddSheetState extends State<_QuickAddSheet> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Hızlı Harcama',
+                      l.quickAddSheetTitle,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -121,7 +123,7 @@ class _QuickAddSheetState extends State<_QuickAddSheet> {
                   CategoryChip(category: widget.category),
                   const SizedBox(width: 8),
                   Text(
-                    'Bugün',
+                    l.today,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -136,8 +138,8 @@ class _QuickAddSheetState extends State<_QuickAddSheet> {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                 ],
-                decoration: const InputDecoration(
-                  labelText: 'Tutar',
+                decoration: InputDecoration(
+                  labelText: l.amountLabel,
                   prefixIcon: Icon(Icons.payments_outlined),
                   suffixText: AppStrings.currencySymbol,
                 ),
@@ -147,8 +149,8 @@ class _QuickAddSheetState extends State<_QuickAddSheet> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _noteCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Açıklama (opsiyonel)',
+                decoration: InputDecoration(
+                  labelText: l.noteOptionalLabel,
                   prefixIcon: Icon(Icons.notes),
                 ),
                 maxLength: 200,
@@ -166,7 +168,7 @@ class _QuickAddSheetState extends State<_QuickAddSheet> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Kaydet'),
+                    : Text(l.save),
               ),
             ],
           ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../models/expense.dart';
+import '../../app/locale_controller.dart';
+import '../../l10n/app_l10n.dart';
 import '../../services/auth_service.dart';
 import '../../services/category_service.dart';
 import '../../services/expense_repository.dart';
@@ -27,6 +29,8 @@ class ExpenseDetailScreen extends StatefulWidget {
 }
 
 class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
+  AppL10n get _l => LocaleController.instance.l10n;
+
   late Future<Expense?> _future;
   bool _changed = false;
 
@@ -63,8 +67,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
     if (user == null) return;
     final ok = await showConfirmDialog(
       context,
-      title: 'Harcamayı sil',
-      message: 'Bu harcamayı silmek istediğinize emin misiniz?',
+      title: _l.deleteExpenseTitle,
+      message: _l.deleteExpenseMessage,
     );
     if (!ok || !mounted) return;
     try {
@@ -77,13 +81,14 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silinemedi. Lütfen tekrar deneyin.')),
+        SnackBar(content: Text(LocaleController.instance.l10n.notDeleted)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -91,7 +96,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
         Navigator.of(context).pop(_changed);
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Harcama Detayı')),
+        appBar: AppBar(title: Text(l.expenseDetailTitle)),
         body: FutureBuilder<Expense?>(
           future: _future,
           builder: (context, snapshot) {
@@ -100,8 +105,8 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
             }
             final e = snapshot.data;
             if (e == null) {
-              return const Center(
-                child: Text('Bu harcama bulunamadı veya silinmiş.'),
+              return Center(
+                child: Text(l.expenseNotFound),
               );
             }
             final cat = CategoryService.instance.byName(e.category);
@@ -143,13 +148,13 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                       const Divider(height: 32),
                       _DetailRow(
                         icon: Icons.calendar_today_outlined,
-                        label: 'Tarih',
+                        label: l.dateLabel,
                         value: Formatters.dateLong(e.date),
                       ),
                       const SizedBox(height: 12),
                       _DetailRow(
                         icon: Icons.notes,
-                        label: 'Açıklama',
+                        label: l.noteLabel,
                         value: (e.note == null || e.note!.trim().isEmpty)
                             ? '—'
                             : e.note!,
@@ -160,7 +165,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                           Expanded(
                             child: OutlinedButton.icon(
                               icon: const Icon(Icons.edit_outlined),
-                              label: const Text('Düzenle'),
+                              label: Text(l.editTooltip),
                               onPressed: () => _edit(e),
                             ),
                           ),
@@ -171,9 +176,9 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
                                 Icons.delete_outline,
                                 color: Colors.red,
                               ),
-                              label: const Text(
-                                'Sil',
-                                style: TextStyle(color: Colors.red),
+                              label: Text(
+                                l.deleteTooltip,
+                                style: const TextStyle(color: Colors.red),
                               ),
                               onPressed: () => _delete(e),
                             ),

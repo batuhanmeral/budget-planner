@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app/locale_controller.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../utils/validators.dart';
@@ -51,7 +52,7 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
       if (exists) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bu isimde bir kategori zaten var')),
+          SnackBar(content: Text(context.l10n.errCategoryExists)),
         );
         return;
       }
@@ -66,7 +67,7 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kategori eklenemedi')),
+        SnackBar(content: Text(context.l10n.errCategoryNotAdded)),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -76,7 +77,7 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Yeni Kategori'),
+      title: Text(context.l10n.newCategoryTitle),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -102,7 +103,7 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
                       const SizedBox(width: 8),
                       Text(
                         _nameCtrl.text.trim().isEmpty
-                            ? 'Önizleme'
+                            ? context.l10n.preview
                             : _nameCtrl.text.trim(),
                         style: TextStyle(
                           color: _color,
@@ -116,9 +117,9 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Kategori adı',
-                  prefixIcon: Icon(Icons.label_outline),
+                decoration: InputDecoration(
+                  labelText: context.l10n.categoryNameLabel,
+                  prefixIcon: const Icon(Icons.label_outline),
                 ),
                 maxLength: 20,
                 onChanged: (_) => setState(() {}),
@@ -129,7 +130,7 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
                 },
               ),
               const SizedBox(height: 8),
-              const _SectionLabel('İkon'),
+              _SectionLabel(context.l10n.iconLabel),
               const SizedBox(height: 8),
               _IconGrid(
                 value: _icon,
@@ -137,7 +138,7 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
                 onChanged: (v) => setState(() => _icon = v),
               ),
               const SizedBox(height: 16),
-              const _SectionLabel('Renk'),
+              _SectionLabel(context.l10n.colorLabel),
               const SizedBox(height: 8),
               _ColorGrid(
                 value: _color,
@@ -150,7 +151,7 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
       actions: [
         TextButton(
           onPressed: _busy ? null : () => Navigator.of(context).pop(false),
-          child: const Text('Vazgeç'),
+          child: Text(context.l10n.cancel),
         ),
         TextButton(
           onPressed: _busy ? null : _submit,
@@ -160,7 +161,7 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Ekle'),
+              : Text(context.l10n.add),
         ),
       ],
     );

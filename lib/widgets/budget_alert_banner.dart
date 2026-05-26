@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app/locale_controller.dart';
+
 /// Bir kategorinin bütçesi ile harcaması arasındaki orandan üretilen
 /// uyarı verisi. Ratio = harcama / limit.
 ///
@@ -37,9 +39,8 @@ class BudgetAlertBanner extends StatelessWidget {
     final icon = isRed ? Icons.error_outline : Icons.warning_amber_rounded;
     final list = isRed ? over : warning;
     final names = list.map((a) => a.category).join(', ');
-    final message = isRed
-        ? '$names bütçesi aşıldı.'
-        : '$names bütçesinin %90\'ını kullandın.';
+    final l = context.l10n;
+    final message = isRed ? l.budgetAlertOver(names) : l.budgetAlertWarn(names);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_constants.dart';
+import '../../app/locale_controller.dart';
 import '../../services/auth_service.dart';
 import '../../services/category_service.dart';
 import '../../widgets/category_chip.dart';
@@ -20,11 +21,12 @@ class CategoriesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final user = AuthService.instance.currentUser;
     if (user == null) return const SizedBox.shrink();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Kategoriler')),
+      appBar: AppBar(title: Text(l.categoriesTitle)),
       body: AnimatedBuilder(
         animation: CategoryService.instance,
         builder: (context, _) {
@@ -32,7 +34,7 @@ class CategoriesScreen extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
             children: [
-              const _SectionHeader('Sabit kategoriler'),
+              _SectionHeader(l.sectionFixedCategories),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -43,16 +45,15 @@ class CategoriesScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              const _SectionHeader('Özel kategoriler'),
+              _SectionHeader(l.sectionCustomCategories),
               const SizedBox(height: 8),
               if (customs.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
                   child: EmptyState(
                     icon: Icons.label_outline,
-                    title: 'Henüz özel kategori yok',
-                    subtitle:
-                        'Sağ alttaki + ile kendi kategorinizi oluşturabilirsiniz.',
+                    title: l.emptyCustomCategoriesTitle,
+                    subtitle: l.emptyCustomCategoriesSubtitle,
                   ),
                 )
               else
@@ -83,10 +84,8 @@ class CategoriesScreen extends StatelessWidget {
                             onPressed: () async {
                               final ok = await showConfirmDialog(
                                 context,
-                                title: 'Kategoriyi sil',
-                                message:
-                                    '${customs[i].name} kategorisini silmek istediğinize emin misiniz?\n\n'
-                                    'Mevcut harcamalarınız "Diğer" olarak görünmeye devam eder.',
+                                title: l.deleteCategoryTitle,
+                                message: l.deleteCategoryMessage(customs[i].name),
                               );
                               if (!ok || !context.mounted) return;
                               await CategoryService.instance.deleteCustom(

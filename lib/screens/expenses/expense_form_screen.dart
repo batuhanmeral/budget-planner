@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/app_constants.dart';
+import '../../app/locale_controller.dart';
 import '../../models/expense.dart';
 import '../../services/auth_service.dart';
 import '../../services/category_service.dart';
@@ -127,7 +128,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kaydedilemedi. Lütfen tekrar deneyin.')),
+        SnackBar(content: Text(LocaleController.instance.l10n.notSaved)),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -136,6 +137,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return PopScope(
       canPop: !_dirty,
       onPopInvokedWithResult: (didPop, _) async {
@@ -146,7 +148,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(_isEdit ? 'Harcamayı Düzenle' : 'Yeni Harcama'),
+          title: Text(_isEdit ? l.editExpenseTitle : l.newExpenseTitle),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -164,8 +166,8 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
-                    decoration: const InputDecoration(
-                      labelText: 'Tutar',
+                    decoration: InputDecoration(
+                      labelText: l.amountLabel,
                       prefixIcon: Icon(Icons.payments_outlined),
                       suffixText: AppStrings.currencySymbol,
                     ),
@@ -174,8 +176,8 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<AppCategory>(
                     initialValue: _category,
-                    decoration: const InputDecoration(
-                      labelText: 'Kategori',
+                    decoration: InputDecoration(
+                      labelText: l.categoryLabel,
                       prefixIcon: Icon(Icons.category_outlined),
                     ),
                     items: [
@@ -203,8 +205,8 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                   InkWell(
                     onTap: _pickDate,
                     child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Tarih',
+                      decoration: InputDecoration(
+                      labelText: l.dateLabel,
                         prefixIcon: Icon(Icons.calendar_today_outlined),
                       ),
                       child: Text(Formatters.dateLong(_date)),
@@ -213,8 +215,8 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _noteCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Açıklama (opsiyonel)',
+                    decoration: InputDecoration(
+                      labelText: l.noteOptionalLabel,
                       prefixIcon: Icon(Icons.notes),
                     ),
                     maxLines: 3,
@@ -233,7 +235,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : Text(_isEdit ? 'Güncelle' : 'Kaydet'),
+                        : Text(_isEdit ? l.update : l.save),
                   ),
                 ],
               ),

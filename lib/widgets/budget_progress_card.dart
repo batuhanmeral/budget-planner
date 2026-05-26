@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app/app_constants.dart';
+import '../app/locale_controller.dart';
 import '../utils/formatters.dart';
 import 'category_chip.dart';
 
@@ -41,6 +42,7 @@ class BudgetProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final remaining = (limit - spent);
+    final l = context.l10n;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -60,13 +62,13 @@ class BudgetProgressCard extends StatelessWidget {
                   ),
                 if (onEdit != null)
                   IconButton(
-                    tooltip: 'Düzenle',
+                    tooltip: l.editTooltip,
                     icon: const Icon(Icons.edit_outlined, size: 20),
                     onPressed: onEdit,
                   ),
                 if (onDelete != null)
                   IconButton(
-                    tooltip: 'Sil',
+                    tooltip: l.deleteTooltip,
                     icon: const Icon(Icons.delete_outline, size: 20),
                     onPressed: onDelete,
                   ),
@@ -89,13 +91,13 @@ class BudgetProgressCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${Formatters.money(spent)} / ${Formatters.money(limit)}',
+                  l.spentOf(Formatters.money(spent), Formatters.money(limit)),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Text(
                   _isOver
-                      ? 'Limit aşıldı'
-                      : 'Kalan ${Formatters.money(remaining)}',
+                      ? l.limitExceeded
+                      : l.remainingAmount(Formatters.money(remaining)),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: _isOver ? Colors.red : null,
                     fontWeight: FontWeight.w600,

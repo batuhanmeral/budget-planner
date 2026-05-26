@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../app/locale_controller.dart';
+import '../../l10n/app_l10n.dart';
 import '../../models/expense.dart';
 import '../../services/auth_service.dart';
 import '../../services/category_service.dart';
@@ -35,6 +37,8 @@ class ExpenseListScreen extends StatefulWidget {
 }
 
 class ExpenseListScreenState extends State<ExpenseListScreen> {
+  AppL10n get _l => LocaleController.instance.l10n;
+
   String? _category;
   DateRangeValue? _range;
   String _query = '';
@@ -87,8 +91,8 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
     final count = _selectedIds.length;
     final ok = await showConfirmDialog(
       context,
-      title: 'Harcamaları sil',
-      message: 'Seçili $count harcamayı silmek istediğinize emin misiniz?',
+      title: _l.deleteExpensesTitle,
+      message: _l.deleteExpensesMessage(count),
     );
     if (!ok || !mounted) return;
     try {
@@ -98,14 +102,14 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$count harcama silindi')),
+        SnackBar(content: Text(_l.snackExpensesDeleted(count))),
       );
       _selectedIds.clear();
       reload();
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silinemedi')),
+        SnackBar(content: Text(_l.notDeleted)),
       );
     }
   }
@@ -125,9 +129,7 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '$affected harcamanın kategorisi "${newCategory.name}" oldu',
-          ),
+          content: Text(_l.snackCategoryChanged(affected, newCategory.name)),
         ),
       );
       _selectedIds.clear();
@@ -135,7 +137,7 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Güncellenemedi')),
+        SnackBar(content: Text(_l.notUpdated)),
       );
     }
   }
@@ -160,6 +162,7 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final user = AuthService.instance.currentUser;
     if (user == null) return const SizedBox.shrink();
 
@@ -178,16 +181,16 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: SegmentedButton<_ViewMode>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: _ViewMode.list,
-                  label: Text('Liste'),
-                  icon: Icon(Icons.list),
+                  label: Text(l.viewList),
+                  icon: const Icon(Icons.list),
                 ),
                 ButtonSegment(
                   value: _ViewMode.calendar,
-                  label: Text('Takvim'),
-                  icon: Icon(Icons.calendar_month),
+                  label: Text(l.viewCalendar),
+                  icon: const Icon(Icons.calendar_month),
                 ),
               ],
               selected: {_view},
@@ -206,6 +209,7 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
   /// Liste modunun gövdesi — filtreler + FutureBuilder.
   /// Seçim modundayken filtre alanı gizlenir (uzun listede dağılmasın).
   Widget _buildListBody() {
+    final l = context.l10n;
     return Column(
       children: [
         if (!_selectionMode)
@@ -218,7 +222,7 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
                   children: [
                     Expanded(
                       child: SearchField(
-                        hint: 'Açıklamada ara...',
+                        hint: l.searchByNoteHint,
                         onChanged: (v) {
                           _query = v;
                           reload();
@@ -227,33 +231,33 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
                   ),
                   const SizedBox(width: 8),
                   PopupMenuButton<ExpenseSort>(
-                    tooltip: 'Sırala',
+                    tooltip: l.sortTooltip,
                     icon: const Icon(Icons.sort),
                     initialValue: _sort,
                     onSelected: (v) {
                       setState(() => _sort = v);
                       reload();
                     },
-                    itemBuilder: (_) => const [
+                    itemBuilder: (_) => [
                       PopupMenuItem(
                         value: ExpenseSort.dateDesc,
-                        child: Text('Tarih (yeni)'),
+                        child: Text(l.sortDateDesc),
                       ),
                       PopupMenuItem(
                         value: ExpenseSort.dateAsc,
-                        child: Text('Tarih (eski)'),
+                        child: Text(l.sortDateAsc),
                       ),
                       PopupMenuItem(
                         value: ExpenseSort.amountDesc,
-                        child: Text('Tutar (yüksek)'),
+                        child: Text(l.sortAmountDesc),
                       ),
                       PopupMenuItem(
                         value: ExpenseSort.amountAsc,
-                        child: Text('Tutar (düşük)'),
+                        child: Text(l.sortAmountAsc),
                       ),
                       PopupMenuItem(
                         value: ExpenseSort.category,
-                        child: Text('Kategori'),
+                        child: Text(l.sortCategoryAsc),
                       ),
                     ],
                   ),
@@ -279,7 +283,7 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
                         Padding(
                           padding: const EdgeInsets.only(right: 6),
                           child: ChoiceChip(
-                            label: const Text('Tümü'),
+                            label: Text(l.all),
                             selected: _category == null,
                             onSelected: (_) {
                               setState(() => _category = null);
@@ -321,16 +325,16 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (snapshot.hasError) {
-                return const Center(child: Text('Veriler yüklenemedi.'));
+                return Center(child: Text(l.loadingDataError));
               }
               final items = snapshot.data ?? const <Expense>[];
               if (items.isEmpty) {
                 return EmptyState(
                   icon: Icons.receipt_long_outlined,
-                  title: 'Henüz harcama yok',
+                  title: l.emptyExpensesTitle,
                   subtitle: _category != null || _query.isNotEmpty
-                      ? 'Filtreyi değiştirip tekrar deneyin.'
-                      : 'Sağ alttaki + ile ilk harcamanı ekle.',
+                      ? l.emptyExpensesFilterSubtitle
+                      : l.emptyExpensesSubtitle,
                 );
               }
               return RefreshIndicator(
@@ -386,6 +390,7 @@ class _SelectionToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final primary = Theme.of(context).colorScheme.primary;
     return Material(
       color: primary.withValues(alpha: 0.12),
@@ -396,13 +401,13 @@ class _SelectionToolbar extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                tooltip: 'Seçimi iptal et',
+                tooltip: l.clearSelectionTooltip,
                 icon: const Icon(Icons.close),
                 onPressed: onClose,
               ),
               Expanded(
                 child: Text(
-                  '$selectedCount seçili',
+                  l.selectedCount(selectedCount),
                   style: TextStyle(
                     color: primary,
                     fontWeight: FontWeight.w700,
@@ -410,12 +415,12 @@ class _SelectionToolbar extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Kategori değiştir',
+                tooltip: l.changeCategoryTooltip,
                 icon: const Icon(Icons.swap_horiz),
                 onPressed: onChangeCategory,
               ),
               IconButton(
-                tooltip: 'Sil',
+                tooltip: l.deleteTooltip,
                 icon: const Icon(Icons.delete_outline, color: Colors.red),
                 onPressed: onDelete,
               ),

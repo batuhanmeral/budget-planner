@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_routes.dart';
+import '../../app/locale_controller.dart';
 import '../../services/auth_service.dart';
 import '../../utils/formatters.dart';
 import '../auth/change_password_screen.dart';
@@ -35,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Hesabınız silindi.')));
+      ).showSnackBar(SnackBar(content: Text(LocaleController.instance.l10n.snackAccountDeleted)));
       Navigator.of(
         context,
       ).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
@@ -47,9 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Hesap silinemedi. Lütfen tekrar deneyin.'),
-        ),
+        SnackBar(content: Text(LocaleController.instance.l10n.deleteAccountErrorSnack)),
       );
     }
   }
@@ -61,12 +60,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          title: const Text('Hesabı sil'),
+          title: Text(LocaleController.instance.l10n.deleteAccountAction),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Bu işlem geri alınamaz. Tüm harcamalarınız ve bütçeleriniz silinir.',
+              Text(LocaleController.instance.l10n.deleteAccountDialogMessage,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -74,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 obscureText: obscure,
                 autofocus: true,
                 decoration: InputDecoration(
-                  labelText: 'Parola onayı',
+                  labelText: LocaleController.instance.l10n.passwordConfirmLabel,
                   suffixIcon: IconButton(
                     icon: Icon(
                       obscure ? Icons.visibility : Icons.visibility_off,
@@ -88,12 +86,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Vazgeç'),
+              child: Text(LocaleController.instance.l10n.cancel),
             ),
             TextButton(
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () => Navigator.of(ctx).pop(ctrl.text),
-              child: const Text('Hesabı sil'),
+              child: Text(LocaleController.instance.l10n.deleteAccountAction),
             ),
           ],
         ),
@@ -103,10 +101,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final user = AuthService.instance.currentUser;
     if (user == null) return const SizedBox.shrink();
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil')),
+      appBar: AppBar(title: Text(l.profileTitle)),
       body: ListView(
         children: [
           const SizedBox(height: 16),
@@ -130,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (user.createdAt != null)
             Center(
               child: Text(
-                'Üye: ${Formatters.dateLong(user.createdAt!.toLocal())}',
+                l.memberSinceLabel(Formatters.dateLong(user.createdAt!.toLocal())),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.outline,
                 ),
@@ -139,16 +138,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 24),
           ListTile(
             leading: const Icon(Icons.lock_outline),
-            title: const Text('Parolayı değiştir'),
+            title: Text(l.changePasswordAction),
             trailing: const Icon(Icons.chevron_right),
             onTap: _changePassword,
           ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.delete_outline, color: Colors.red),
-            title: const Text(
-              'Hesabı sil',
-              style: TextStyle(color: Colors.red),
+            title: Text(
+              l.deleteAccountAction,
+              style: const TextStyle(color: Colors.red),
             ),
             trailing: const Icon(Icons.chevron_right, color: Colors.red),
             onTap: _deleteAccount,

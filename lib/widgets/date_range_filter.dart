@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app/locale_controller.dart';
 import '../utils/date_utils.dart' as du;
 import '../utils/formatters.dart';
 
@@ -73,6 +74,7 @@ class DateRangeFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -80,17 +82,17 @@ class DateRangeFilter extends StatelessWidget {
           spacing: 8,
           children: [
             ChoiceChip(
-              label: const Text('Bu Hafta'),
+              label: Text(l.filterThisWeek),
               selected: value.preset == DateRangePreset.thisWeek,
               onSelected: (_) => onChanged(DateRangeValue.thisWeek()),
             ),
             ChoiceChip(
-              label: const Text('Bu Ay'),
+              label: Text(l.filterThisMonth),
               selected: value.preset == DateRangePreset.thisMonth,
               onSelected: (_) => onChanged(DateRangeValue.thisMonth()),
             ),
             ChoiceChip(
-              label: const Text('Özel'),
+              label: Text(l.filterCustom),
               selected: value.preset == DateRangePreset.custom,
               onSelected: (_) => _pickCustom(context),
             ),

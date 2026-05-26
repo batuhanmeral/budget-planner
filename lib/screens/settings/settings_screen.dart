@@ -28,8 +28,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (user == null) return;
     final ok = await showConfirmDialog(
       context,
-      title: l.deleteAllExpensesAction,
-      message: l.deleteAllExpensesAction,
+      title: l.deleteAllExpensesTitle,
+      message: l.deleteAllExpensesMessage,
       confirmLabel: l.delete,
       cancelLabel: l.cancel,
     );
@@ -39,7 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('$count')));
+      ).showSnackBar(SnackBar(content: Text(l.snackExpensesDeleted(count))));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(

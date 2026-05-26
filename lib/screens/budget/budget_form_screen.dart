@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/app_constants.dart';
+import '../../app/locale_controller.dart';
+import '../../l10n/app_l10n.dart';
 import '../../models/budget.dart';
 import '../../services/auth_service.dart';
 import '../../services/budget_repository.dart';
@@ -36,6 +38,8 @@ class BudgetFormScreen extends StatefulWidget {
 }
 
 class _BudgetFormScreenState extends State<BudgetFormScreen> {
+  AppL10n get _l => LocaleController.instance.l10n;
+
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _limitCtrl;
   late AppCategory _category;
@@ -105,7 +109,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kaydedilemedi. Lütfen tekrar deneyin.')),
+        SnackBar(content: Text(_l.notSaved)),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -114,14 +118,15 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     if (_selectableCategories.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Yeni Bütçe')),
-        body: const Center(
+        appBar: AppBar(title: Text(l.newBudgetTitle)),
+        body: Center(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Text(
-              'Tüm kategoriler için bütçe oluşturulmuş. Mevcut bütçelerden birini düzenleyebilirsiniz.',
+              l.allCategoriesUsedMsg,
               textAlign: TextAlign.center,
             ),
           ),
@@ -138,7 +143,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
         if (ok && mounted) navigator.pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(_isEdit ? 'Bütçeyi Düzenle' : 'Yeni Bütçe')),
+        appBar: AppBar(title: Text(_isEdit ? l.editBudgetTitle : l.newBudgetTitle)),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -150,7 +155,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
                   if (_isEdit)
                     Row(
                       children: [
-                        const Text('Kategori: '),
+                        Text('${l.categoryLabel}: '),
                         const SizedBox(width: 8),
                         CategoryChip(category: _category),
                       ],
@@ -158,8 +163,8 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
                   else
                     DropdownButtonFormField<AppCategory>(
                       initialValue: _category,
-                      decoration: const InputDecoration(
-                        labelText: 'Kategori',
+                      decoration: InputDecoration(
+                      labelText: l.categoryLabel,
                         prefixIcon: Icon(Icons.category_outlined),
                       ),
                       items: [
@@ -192,8 +197,8 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
-                    decoration: const InputDecoration(
-                      labelText: 'Aylık limit',
+                    decoration: InputDecoration(
+                      labelText: l.monthlyLimitLabel,
                       prefixIcon: Icon(Icons.payments_outlined),
                       suffixText: AppStrings.currencySymbol,
                     ),
@@ -211,7 +216,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : Text(_isEdit ? 'Güncelle' : 'Kaydet'),
+                        : Text(_isEdit ? l.update : l.save),
                   ),
                 ],
               ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../models/recurring_expense.dart';
+import '../../app/locale_controller.dart';
+import '../../l10n/app_l10n.dart';
 import '../../services/auth_service.dart';
 import '../../services/category_service.dart';
 import '../../services/recurring_expense_repository.dart';
@@ -26,6 +28,8 @@ class RecurringListScreen extends StatefulWidget {
 }
 
 class _RecurringListScreenState extends State<RecurringListScreen> {
+  AppL10n get _l => LocaleController.instance.l10n;
+
   late Future<List<RecurringExpense>> _future;
 
   @override
@@ -60,7 +64,7 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Güncellenemedi')),
+        SnackBar(content: Text(_l.notUpdated)),
       );
     }
   }
@@ -70,10 +74,9 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
     if (user == null) return;
     final ok = await showConfirmDialog(
       context,
-      title: 'Tekrarlayanı sil',
+      title: _l.deleteRecurringTitle,
       message:
-          'Bu tekrarlayan harcama şablonunu silmek istediğinize emin misiniz?\n\n'
-          'Önceden eklenmiş harcamalarınız etkilenmez.',
+          _l.deleteRecurringMessage,
     );
     if (!ok || !mounted) return;
     try {
@@ -85,15 +88,16 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silinemedi')),
+        SnackBar(content: Text(_l.notDeleted)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('Tekrarlayan Harcamalar')),
+      appBar: AppBar(title: Text(l.recurringTitle)),
       body: FutureBuilder<List<RecurringExpense>>(
         future: _future,
         builder: (context, snapshot) {
@@ -102,11 +106,10 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
           }
           final items = snapshot.data ?? const <RecurringExpense>[];
           if (items.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.repeat,
-              title: 'Henüz tekrarlayan harcama yok',
-              subtitle:
-                  'Kira, internet gibi her ay aynı tutarda olan harcamalarınızı buraya ekleyin.',
+              title: l.emptyRecurringTitle,
+              subtitle: l.emptyRecurringSubtitle,
             );
           }
           return ListView.builder(
@@ -167,7 +170,7 @@ class _RecurringTile extends StatelessWidget {
                 const SizedBox(width: 8),
                 Flexible(
                   child: Text(
-                    'Her ayın ${recurring.dayOfMonth}. günü',
+                    context.l10n.everyMonthOnDay(recurring.dayOfMonth),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ),

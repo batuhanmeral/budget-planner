@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../app/app_constants.dart';
+import '../app/locale_controller.dart';
 import '../utils/formatters.dart';
 import 'category_chip.dart';
 
@@ -74,7 +75,7 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
         height: widget.size,
         child: Center(
           child: Text(
-            'Bu ay harcama yok',
+            context.l10n.noExpensesThisMonth,
             style: TextStyle(color: Theme.of(context).colorScheme.outline),
           ),
         ),
@@ -139,7 +140,7 @@ class _SelectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     if (selected == null) {
       return Text(
-        'Dilime dokunarak detayını görebilirsin',
+        context.l10n.tapSliceHint,
         style: TextStyle(color: Theme.of(context).colorScheme.outline),
       );
     }

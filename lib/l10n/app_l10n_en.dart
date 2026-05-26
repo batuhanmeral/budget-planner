@@ -51,6 +51,14 @@ class AppL10nEn extends AppL10n {
   String get notDeleted => 'Could not be deleted. Please try again.';
   @override
   String get notUpdated => 'Could not be updated';
+  @override
+  String get optional => 'optional';
+  @override
+  String get today => 'Today';
+  @override
+  String get all => 'All';
+  @override
+  String get preview => 'Preview';
 
   // --- AUTH ---
   @override
@@ -174,6 +182,13 @@ class AppL10nEn extends AppL10n {
   @override
   String get aboutBody =>
       'A simple app to help you track your daily expenses and monthly budget goals.';
+  @override
+  String get deleteAllExpensesTitle => 'Delete all expenses';
+  @override
+  String get deleteAllExpensesMessage =>
+      'All your expenses will be permanently deleted. Your budgets are preserved. Continue?';
+  @override
+  String snackExpensesDeleted(int count) => '$count expense(s) deleted';
 
   // --- ONBOARDING ---
   @override
@@ -202,4 +217,238 @@ class AppL10nEn extends AppL10n {
   String get unsavedDiscard => 'Leave';
   @override
   String get unsavedStay => 'Stay';
+
+  // --- EXPENSES ---
+  @override
+  String get expenseDetailTitle => 'Expense Detail';
+  @override
+  String get newExpenseTitle => 'New Expense';
+  @override
+  String get editExpenseTitle => 'Edit Expense';
+  @override
+  String get amountLabel => 'Amount';
+  @override
+  String get categoryLabel => 'Category';
+  @override
+  String get dateLabel => 'Date';
+  @override
+  String get noteLabel => 'Note';
+  @override
+  String get noteOptionalLabel => 'Note (optional)';
+  @override
+  String get searchByNoteHint => 'Search in notes...';
+  @override
+  String get searchHint => 'Search...';
+  @override
+  String get viewList => 'List';
+  @override
+  String get viewCalendar => 'Calendar';
+  @override
+  String get sortDateDesc => 'Date (newest)';
+  @override
+  String get sortDateAsc => 'Date (oldest)';
+  @override
+  String get sortAmountDesc => 'Amount (high)';
+  @override
+  String get sortAmountAsc => 'Amount (low)';
+  @override
+  String get sortCategoryAsc => 'Category';
+  @override
+  String get sortTooltip => 'Sort';
+  @override
+  String get filterThisWeek => 'This Week';
+  @override
+  String get filterThisMonth => 'This Month';
+  @override
+  String get filterCustom => 'Custom';
+  @override
+  String get emptyExpensesTitle => 'No expenses yet';
+  @override
+  String get emptyExpensesSubtitle => 'Add your first expense with the + button.';
+  @override
+  String get emptyExpensesFilterSubtitle =>
+      'Change the filters and try again.';
+  @override
+  String get deleteExpenseTitle => 'Delete expense';
+  @override
+  String get deleteExpenseMessage =>
+      'Are you sure you want to delete this expense?';
+  @override
+  String get deleteExpensesTitle => 'Delete expenses';
+  @override
+  String deleteExpensesMessage(int count) =>
+      'Are you sure you want to delete $count selected expenses?';
+  @override
+  String get expenseNotFound => 'This expense was not found or has been deleted.';
+  @override
+  String get noExpensesThisDay => 'No expenses on this day';
+  @override
+  String get loadingDataError => 'Could not load data.';
+  @override
+  String get tapForFirstExpense => 'Add your first expense with the + button.';
+  @override
+  String selectedCount(int n) => '$n selected';
+  @override
+  String snackCategoryChanged(int count, String category) =>
+      '$count expense(s) moved to "$category"';
+  @override
+  String get changeCategoryTooltip => 'Change category';
+  @override
+  String get clearSelectionTooltip => 'Clear selection';
+
+  // --- DASHBOARD ---
+  @override
+  String greeting(String username) => 'Hello, $username';
+  @override
+  String get greetingSubtitle => 'Take a look at your spending today.';
+  @override
+  String get monthTotalLabel => 'This month';
+  @override
+  String comparedToLastMonthIncrease(int pct) => '$pct% higher than last month';
+  @override
+  String comparedToLastMonthDecrease(int pct) => '$pct% lower than last month';
+  @override
+  String get sameAsLastMonth => 'Same as last month';
+  @override
+  String get noDataLastMonth => 'No data for last month.';
+  @override
+  String get weeklyChartTitle => 'Last 7 days';
+  @override
+  String get yearlyChartTitle => 'Yearly summary';
+  @override
+  String yearlyTotal(String moneyText) => 'Year total: $moneyText';
+  @override
+  String get categoryBreakdownTitle => 'Category breakdown';
+  @override
+  String get recentExpensesTitle => 'Recent expenses';
+  @override
+  String get quickAddTitle => 'Quick Add';
+  @override
+  String get tapSliceHint => 'Tap a slice to see details';
+  @override
+  String get noExpensesThisMonth => 'No expenses this month.';
+
+  // --- BUDGETS ---
+  @override
+  String get newBudgetTitle => 'New Budget';
+  @override
+  String get editBudgetTitle => 'Edit Budget';
+  @override
+  String get monthlyLimitLabel => 'Monthly limit';
+  @override
+  String spentOf(String spent, String limit) => '$spent / $limit';
+  @override
+  String remainingAmount(String amount) => '$amount remaining';
+  @override
+  String get limitExceeded => 'Limit exceeded';
+  @override
+  String get deleteBudgetTitle => 'Delete budget';
+  @override
+  String deleteBudgetMessage(String category) =>
+      'Are you sure you want to delete the budget for $category?';
+  @override
+  String get allCategoriesUsedMsg =>
+      'All categories already have a budget. You can edit an existing one.';
+  @override
+  String get emptyBudgetTitle => 'No budgets yet';
+  @override
+  String get emptyBudgetSubtitle =>
+      'Set a monthly limit per category with the + button.';
+  @override
+  String budgetAlertOver(String names) => '$names budget exceeded.';
+  @override
+  String budgetAlertWarn(String names) => 'You\'ve used 90% of $names budget.';
+  @override
+  String get editTooltip => 'Edit';
+  @override
+  String get deleteTooltip => 'Delete';
+
+  // --- PROFILE ---
+  @override
+  String get profileTitle => 'Profile';
+  @override
+  String memberSinceLabel(String date) => 'Member since: $date';
+  @override
+  String get changePasswordAction => 'Change password';
+  @override
+  String get deleteAccountAction => 'Delete account';
+  @override
+  String get deleteAccountDialogMessage =>
+      'This action cannot be undone. All your expenses and budgets will be deleted.';
+  @override
+  String get snackAccountDeleted => 'Your account has been deleted.';
+  @override
+  String get deleteAccountErrorSnack =>
+      'Could not delete account. Please try again.';
+  @override
+  String get passwordConfirmLabel => 'Password confirmation';
+
+  // --- CATEGORIES ---
+  @override
+  String get categoriesTitle => 'Categories';
+  @override
+  String get sectionFixedCategories => 'Built-in categories';
+  @override
+  String get sectionCustomCategories => 'Custom categories';
+  @override
+  String get emptyCustomCategoriesTitle => 'No custom categories yet';
+  @override
+  String get emptyCustomCategoriesSubtitle =>
+      'Create your own category with the + button.';
+  @override
+  String get newCategoryTitle => 'New Category';
+  @override
+  String get categoryNameLabel => 'Category name';
+  @override
+  String get iconLabel => 'Icon';
+  @override
+  String get colorLabel => 'Color';
+  @override
+  String get deleteCategoryTitle => 'Delete category';
+  @override
+  String deleteCategoryMessage(String name) =>
+      'Are you sure you want to delete $name?\n\nYour existing expenses will still appear under "Other".';
+  @override
+  String get errCategoryExists => 'A category with this name already exists';
+  @override
+  String get errCategoryNotAdded => 'Could not add category';
+  @override
+  String get pickCategoryTitle => 'Pick a category';
+
+  // --- RECURRING ---
+  @override
+  String get recurringTitle => 'Recurring Expenses';
+  @override
+  String get newRecurringTitle => 'New Recurring';
+  @override
+  String get editRecurringTitle => 'Edit Recurring';
+  @override
+  String everyMonthOnDay(int day) => 'Day $day of every month';
+  @override
+  String get dayInMonthLabel => 'Every month on day';
+  @override
+  String get dayOfMonthSuffix => '';
+  @override
+  String get dayWillBeShiftedHint =>
+      'On months without 30/31 days, will shift to the last day.';
+  @override
+  String get recurringActiveSubtitle => 'Added automatically every month';
+  @override
+  String get recurringPassiveSubtitle => 'Inactive — not added automatically';
+  @override
+  String get activeLabel => 'Active';
+  @override
+  String get deleteRecurringTitle => 'Delete recurring';
+  @override
+  String get deleteRecurringMessage =>
+      'Are you sure you want to delete this recurring template?\n\nPreviously added expenses will not be affected.';
+  @override
+  String get emptyRecurringTitle => 'No recurring expenses yet';
+  @override
+  String get emptyRecurringSubtitle =>
+      'Add monthly fixed expenses like rent and internet here.';
+
+  // --- QUICK ADD ---
+  @override
+  String get quickAddSheetTitle => 'Quick Expense';
 }

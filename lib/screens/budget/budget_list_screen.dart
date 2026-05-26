@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../models/budget.dart';
+import '../../app/locale_controller.dart';
+import '../../l10n/app_l10n.dart';
 import '../../services/auth_service.dart';
 import '../../services/budget_repository.dart';
 import '../../services/category_service.dart';
@@ -32,6 +34,8 @@ class BudgetListScreen extends StatefulWidget {
 }
 
 class BudgetListScreenState extends State<BudgetListScreen> {
+  AppL10n get _l => LocaleController.instance.l10n;
+
   late Future<_BudgetListData> _future;
 
   @override
@@ -80,9 +84,9 @@ class BudgetListScreenState extends State<BudgetListScreen> {
     if (user == null) return;
     final ok = await showConfirmDialog(
       context,
-      title: 'Bütçeyi sil',
+      title: _l.deleteBudgetTitle,
       message:
-          '${budget.category} kategorisinin bütçesini silmek istediğinize emin misiniz?',
+          _l.deleteBudgetMessage(budget.category),
     );
     if (!ok || !mounted) return;
     try {
@@ -91,7 +95,7 @@ class BudgetListScreenState extends State<BudgetListScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silinemedi. Lütfen tekrar deneyin.')),
+        SnackBar(content: Text(_l.notDeleted)),
       );
     }
   }
@@ -110,6 +114,7 @@ class BudgetListScreenState extends State<BudgetListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final user = AuthService.instance.currentUser;
     if (user == null) return const SizedBox.shrink();
 
@@ -120,15 +125,15 @@ class BudgetListScreenState extends State<BudgetListScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return const Center(child: Text('Veriler yüklenemedi.'));
+          return Center(child: Text(l.loadingDataError));
         }
         final data = snapshot.data ?? const _BudgetListData([], {});
 
         if (data.budgets.isEmpty) {
           return EmptyState(
             icon: Icons.savings_outlined,
-            title: 'Henüz bütçe yok',
-            subtitle: 'Sağ alttaki + ile kategori başına aylık limit belirle.',
+            title: l.emptyBudgetTitle,
+            subtitle: l.emptyBudgetSubtitle,
           );
         }
 

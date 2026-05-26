@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_constants.dart';
+import '../../app/locale_controller.dart';
 import '../../models/budget.dart';
 import '../../models/expense.dart';
 import '../../services/auth_service.dart';
@@ -154,6 +155,7 @@ class DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final user = AuthService.instance.currentUser;
     if (user == null) return const SizedBox.shrink();
 
@@ -164,7 +166,7 @@ class DashboardScreenState extends State<DashboardScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return const Center(child: Text('Veriler yüklenemedi.'));
+          return Center(child: Text(l.loadingDataError));
         }
         final data = snapshot.data!;
         return RefreshIndicator(
@@ -220,10 +222,10 @@ class _GreetingCard extends StatelessWidget {
           child: const Icon(Icons.waving_hand),
         ),
         title: Text(
-          'Merhaba, $username',
+          context.l10n.greeting(username),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
-        subtitle: const Text('Bugünkü harcamalarına göz at.'),
+        subtitle: Text(context.l10n.greetingSubtitle),
       ),
     );
   }
@@ -236,21 +238,23 @@ class _MonthTotalCard extends StatelessWidget {
   const _MonthTotalCard({required this.total, required this.previous});
 
   ({IconData icon, String label, Color color})? _delta(BuildContext context) {
+    final l = context.l10n;
     if (previous <= 0) return null;
     final diff = total - previous;
     final pct = (diff / previous * 100).abs();
     if (diff == 0) {
       return (
         icon: Icons.remove,
-        label: 'Geçen ayla aynı',
+        label: l.sameAsLastMonth,
         color: Theme.of(context).colorScheme.outline,
       );
     }
     final up = diff > 0;
     return (
       icon: up ? Icons.arrow_upward : Icons.arrow_downward,
-      label:
-          'Geçen aya göre %${pct.toStringAsFixed(0)} ${up ? 'arttı' : 'azaldı'}',
+      label: up
+          ? l.comparedToLastMonthIncrease(pct.toInt())
+          : l.comparedToLastMonthDecrease(pct.toInt()),
       color: up ? Colors.red : Colors.green,
     );
   }
@@ -265,7 +269,7 @@ class _MonthTotalCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Bu ay toplam',
+              context.l10n.monthTotalLabel,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 color: Theme.of(context).colorScheme.outline,
               ),
@@ -294,7 +298,7 @@ class _MonthTotalCard extends StatelessWidget {
               )
             else
               Text(
-                'Geçen ay için veri yok.',
+                context.l10n.noDataLastMonth,
                 style: TextStyle(color: Theme.of(context).colorScheme.outline),
               ),
           ],
@@ -316,7 +320,7 @@ class _WeeklyChartCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Son 7 gün', style: Theme.of(context).textTheme.titleMedium),
+            Text(context.l10n.weeklyChartTitle, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             WeeklyBarChart(data: data),
           ],
@@ -363,7 +367,7 @@ class _QuickAddCard extends StatelessWidget {
                 const Icon(Icons.flash_on, size: 18),
                 const SizedBox(width: 6),
                 Text(
-                  'Hızlı Ekle',
+                  context.l10n.quickAddTitle,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -447,7 +451,7 @@ class _YearlyChartCardState extends State<_YearlyChartCard> {
             Row(
               children: [
                 Text(
-                  'Yıllık özet',
+                  context.l10n.yearlyChartTitle,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const Spacer(),
@@ -489,7 +493,7 @@ class _YearlyChartCardState extends State<_YearlyChartCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Yıl toplamı: ${Formatters.money(yearTotal)}',
+                      context.l10n.yearlyTotal(Formatters.money(yearTotal)),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.outline,
                       ),
@@ -536,7 +540,7 @@ class _CategoryBreakdownCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Kategori dağılımı',
+              context.l10n.categoryBreakdownTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
@@ -544,7 +548,7 @@ class _CategoryBreakdownCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
-                  'Bu ay harcama yok.',
+                  context.l10n.noExpensesThisMonth,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -622,16 +626,16 @@ class _RecentExpensesCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Son harcamalar',
+              context.l10n.recentExpensesTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             if (recent.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
                 child: EmptyState(
                   icon: Icons.history,
-                  title: 'Henüz harcama yok',
+                  title: context.l10n.emptyExpensesTitle,
                 ),
               )
             else

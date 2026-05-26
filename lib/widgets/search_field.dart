@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../app/locale_controller.dart';
+
 /// Debounce'lu arama TextField'ı.
 ///
 /// Her tuş vuruşunda DB sorgusu yapmamak için 300ms (varsayılan) bekler;
@@ -10,13 +12,13 @@ import 'package:flutter/material.dart';
 ///
 /// Sağda otomatik "temizle" (X) butonu — metin varken görünür.
 class SearchField extends StatefulWidget {
-  final String hint;
+  final String? hint;
   final Duration debounce;
   final ValueChanged<String> onChanged;
 
   const SearchField({
     super.key,
-    this.hint = 'Ara...',
+    this.hint,
     this.debounce = const Duration(milliseconds: 300),
     required this.onChanged,
   });
@@ -55,7 +57,7 @@ class _SearchFieldState extends State<SearchField> {
       controller: _ctrl,
       onChanged: _handleChanged,
       decoration: InputDecoration(
-        hintText: widget.hint,
+        hintText: widget.hint ?? context.l10n.searchHint,
         prefixIcon: const Icon(Icons.search),
         suffixIcon: _ctrl.text.isEmpty
             ? null

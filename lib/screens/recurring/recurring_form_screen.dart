@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/app_constants.dart';
+import '../../app/locale_controller.dart';
+import '../../l10n/app_l10n.dart';
 import '../../models/recurring_expense.dart';
 import '../../services/auth_service.dart';
 import '../../services/category_service.dart';
@@ -27,6 +29,8 @@ class RecurringFormScreen extends StatefulWidget {
 }
 
 class _RecurringFormScreenState extends State<RecurringFormScreen> {
+  AppL10n get _l => LocaleController.instance.l10n;
+
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _amountCtrl;
   late final TextEditingController _noteCtrl;
@@ -111,7 +115,7 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kaydedilemedi. Lütfen tekrar deneyin.')),
+        SnackBar(content: Text(_l.notSaved)),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -120,6 +124,7 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return PopScope(
       canPop: !_dirty,
       onPopInvokedWithResult: (didPop, _) async {
@@ -130,7 +135,7 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(_isEdit ? 'Tekrarlayanı Düzenle' : 'Yeni Tekrarlayan'),
+          title: Text(_isEdit ? l.editRecurringTitle : l.newRecurringTitle),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -148,8 +153,8 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
-                    decoration: const InputDecoration(
-                      labelText: 'Tutar',
+                    decoration: InputDecoration(
+                      labelText: l.amountLabel,
                       prefixIcon: Icon(Icons.payments_outlined),
                       suffixText: AppStrings.currencySymbol,
                     ),
@@ -158,8 +163,8 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<AppCategory>(
                     initialValue: _category,
-                    decoration: const InputDecoration(
-                      labelText: 'Kategori',
+                    decoration: InputDecoration(
+                      labelText: l.categoryLabel,
                       prefixIcon: Icon(Icons.category_outlined),
                     ),
                     items: [
@@ -188,7 +193,7 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
                     children: [
                       const Icon(Icons.calendar_today_outlined, size: 20),
                       const SizedBox(width: 8),
-                      const Text('Her ayın'),
+                      Text(l.dayInMonthLabel),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -210,7 +215,7 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Text('günü'),
+                      Text(l.dayOfMonthSuffix),
                     ],
                   ),
                   Slider(
@@ -228,7 +233,7 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
                     Padding(
                       padding: const EdgeInsets.only(left: 4),
                       child: Text(
-                        '30/31 günü olmayan aylarda son güne kaydırılır.',
+                        l.dayWillBeShiftedHint,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         ),
@@ -237,8 +242,8 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _noteCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Açıklama (opsiyonel)',
+                    decoration: InputDecoration(
+                      labelText: l.noteOptionalLabel,
                       prefixIcon: Icon(Icons.notes),
                     ),
                     maxLines: 2,
@@ -247,11 +252,9 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
                   ),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Aktif'),
+                    title: Text(l.activeLabel),
                     subtitle: Text(
-                      _active
-                          ? 'Her ay otomatik eklenir'
-                          : 'Pasif — otomatik eklenmez',
+                      _active ? l.recurringActiveSubtitle : l.recurringPassiveSubtitle,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     value: _active,
@@ -272,7 +275,7 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : Text(_isEdit ? 'Güncelle' : 'Kaydet'),
+                        : Text(_isEdit ? l.update : l.save),
                   ),
                 ],
               ),

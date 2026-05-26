@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../app/locale_controller.dart';
 import '../../models/expense.dart';
 import '../../services/auth_service.dart';
 import '../../services/expense_repository.dart';
@@ -147,7 +148,13 @@ class _WeekdayHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // ISO 8601: Pazartesi haftanın ilk günü.
-    const labels = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+    // Pazartesi-Pazar arasını locale'e göre döndür (kısa formatla).
+    final fmt = DateFormat.E(Intl.defaultLocale);
+    // 2026-05-25 = Pazartesi; bu tarihten itibaren 7 gün etiketleri üret.
+    final labels = List.generate(
+      7,
+      (i) => fmt.format(DateTime(2026, 5, 25).add(Duration(days: i))),
+    );
     final color = Theme.of(context).colorScheme.outline;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -336,7 +343,7 @@ class _DayExpensesSheet extends StatelessWidget {
                       ),
                       if (expenses.isNotEmpty)
                         Text(
-                          'Toplam ${Formatters.money(total)}',
+                          '${context.l10n.monthTotalLabel}: ${Formatters.money(total)}',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                     ],
@@ -350,11 +357,11 @@ class _DayExpensesSheet extends StatelessWidget {
             ),
             const Divider(),
             if (expenses.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
                 child: EmptyState(
                   icon: Icons.receipt_long_outlined,
-                  title: 'Bu gün harcama yok',
+                  title: context.l10n.noExpensesThisDay,
                 ),
               )
             else
