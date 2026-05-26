@@ -98,6 +98,40 @@ class ExpenseRepository {
     return db.delete('expenses', where: 'user_id = ?', whereArgs: [userId]);
   }
 
+  /// Birden fazla harcamayı tek SQL'de siler — toplu seçim akışı için.
+  /// `IN (?, ?, ...)` placeholder'ı dinamik üretilir; tüm değerler
+  /// parametre olarak geçer (SQL injection güvenli).
+  Future<int> deleteMany({
+    required List<int> ids,
+    required int userId,
+  }) async {
+    if (ids.isEmpty) return 0;
+    final db = await DatabaseService.instance.database;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    return db.delete(
+      'expenses',
+      where: 'user_id = ? AND id IN ($placeholders)',
+      whereArgs: [userId, ...ids],
+    );
+  }
+
+  /// Seçili harcamaların kategorisini topluca değiştirir.
+  Future<int> updateCategoryMany({
+    required List<int> ids,
+    required int userId,
+    required String category,
+  }) async {
+    if (ids.isEmpty) return 0;
+    final db = await DatabaseService.instance.database;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    return db.update(
+      'expenses',
+      {'category': category},
+      where: 'user_id = ? AND id IN ($placeholders)',
+      whereArgs: [userId, ...ids],
+    );
+  }
+
   /// Tek bir harcamayı detay ekranı için yükler.
   Future<Expense?> getById({required int id, required int userId}) async {
     final db = await DatabaseService.instance.database;

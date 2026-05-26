@@ -7,28 +7,56 @@ import 'category_chip.dart';
 
 /// Listede tek bir harcamayı gösteren kart.
 ///
-/// Sol: kategori renkli daire ikon. Sağ üst: tutar (kalın). Altta:
-/// kategori chip + tarih + (varsa) açıklama (max 2 satır). En sağda:
-/// chevron ikonu — tıklanabilir olduğunu gösterir.
+/// Sol: kategori renkli daire ikon (seçim modunda checkbox). Sağ üst:
+/// tutar (kalın). Altta: kategori chip + tarih + (varsa) açıklama
+/// (max 2 satır).
 ///
-/// [onTap] verilirse detaya yönlendirir; null verilirse pasif.
+/// Toplu seçim akışı için:
+/// - [selected] true ise vurgulu görsel (border + arka plan).
+/// - [onLongPress] genelde seçim modunu açmak için kullanılır.
 class ExpenseTile extends StatelessWidget {
   final Expense expense;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final bool selected;
 
-  const ExpenseTile({super.key, required this.expense, this.onTap});
+  const ExpenseTile({
+    super.key,
+    required this.expense,
+    this.onTap,
+    this.onLongPress,
+    this.selected = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final cat = CategoryService.instance.byName(expense.category);
+    final primary = Theme.of(context).colorScheme.primary;
     return Card(
+      // Seçili olduğunda primary tonunda hafif overlay ile vurgulu.
+      color: selected
+          ? primary.withValues(alpha: 0.12)
+          : null,
+      shape: selected
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: primary, width: 1.5),
+            )
+          : null,
       child: ListTile(
         onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: cat.color.withValues(alpha: 0.15),
-          foregroundColor: cat.color,
-          child: Icon(cat.icon),
-        ),
+        onLongPress: onLongPress,
+        leading: selected
+            ? CircleAvatar(
+                backgroundColor: primary,
+                foregroundColor: Colors.white,
+                child: const Icon(Icons.check),
+              )
+            : CircleAvatar(
+                backgroundColor: cat.color.withValues(alpha: 0.15),
+                foregroundColor: cat.color,
+                child: Icon(cat.icon),
+              ),
         title: Text(
           Formatters.money(expense.amount),
           style: const TextStyle(fontWeight: FontWeight.w700),
@@ -60,7 +88,8 @@ class ExpenseTile extends StatelessWidget {
             ],
           ],
         ),
-        trailing: const Icon(Icons.chevron_right),
+        // Seçim modunda chevron yerine boşluk — checkbox baştadır.
+        trailing: selected ? null : const Icon(Icons.chevron_right),
       ),
     );
   }

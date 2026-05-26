@@ -4,6 +4,8 @@ import '../../models/expense.dart';
 import '../../services/auth_service.dart';
 import '../../services/category_service.dart';
 import '../../services/expense_repository.dart';
+import '../../widgets/category_picker_dialog.dart';
+import '../../widgets/confirm_dialog.dart';
 import '../../widgets/date_range_filter.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/expense_tile.dart';
@@ -40,6 +42,11 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
   _ViewMode _view = _ViewMode.list;
   late Future<List<Expense>> _future;
 
+  // Toplu seçim modu: bir veya daha fazla harcama seçilmişse aktif.
+  // Header normal filtreleri gizler, üstte seçim toolbar'ı gösterir.
+  final Set<int> _selectedIds = <int>{};
+  bool get _selectionMode => _selectedIds.isNotEmpty;
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +68,76 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
 
   void reload() {
     setState(() => _future = _load());
+  }
+
+  void _exitSelectionMode() {
+    setState(() => _selectedIds.clear());
+  }
+
+  void _toggleSelection(int id) {
+    setState(() {
+      if (!_selectedIds.add(id)) _selectedIds.remove(id);
+    });
+  }
+
+  /// Seçili harcamaları toplu siler — onaylı.
+  Future<void> _bulkDelete() async {
+    final user = AuthService.instance.currentUser;
+    if (user == null) return;
+    final count = _selectedIds.length;
+    final ok = await showConfirmDialog(
+      context,
+      title: 'Harcamaları sil',
+      message: 'Seçili $count harcamayı silmek istediğinize emin misiniz?',
+    );
+    if (!ok || !mounted) return;
+    try {
+      await ExpenseRepository.instance.deleteMany(
+        ids: _selectedIds.toList(),
+        userId: user.id!,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$count harcama silindi')),
+      );
+      _selectedIds.clear();
+      reload();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Silinemedi')),
+      );
+    }
+  }
+
+  /// Seçili harcamaların kategorisini topluca değiştirir.
+  Future<void> _bulkChangeCategory() async {
+    final user = AuthService.instance.currentUser;
+    if (user == null) return;
+    final newCategory = await pickCategory(context);
+    if (newCategory == null || !mounted) return;
+    try {
+      final affected = await ExpenseRepository.instance.updateCategoryMany(
+        ids: _selectedIds.toList(),
+        userId: user.id!,
+        category: newCategory.name,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '$affected harcamanın kategorisi "${newCategory.name}" oldu',
+          ),
+        ),
+      );
+      _selectedIds.clear();
+      reload();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Güncellenemedi')),
+      );
+    }
   }
 
   Future<void> _openDetail(Expense expense) async {
@@ -88,28 +165,37 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
 
     return Column(
       children: [
-        // Liste/Takvim toggle — her zaman görünür.
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: SegmentedButton<_ViewMode>(
-            segments: const [
-              ButtonSegment(
-                value: _ViewMode.list,
-                label: Text('Liste'),
-                icon: Icon(Icons.list),
-              ),
-              ButtonSegment(
-                value: _ViewMode.calendar,
-                label: Text('Takvim'),
-                icon: Icon(Icons.calendar_month),
-              ),
-            ],
-            selected: {_view},
-            onSelectionChanged: (s) => setState(() => _view = s.first),
+        // Seçim modu üstte ayrı bir toolbar gösterir; aksi takdirde
+        // Liste/Takvim toggle görünür.
+        if (_selectionMode)
+          _SelectionToolbar(
+            selectedCount: _selectedIds.length,
+            onClose: _exitSelectionMode,
+            onDelete: _bulkDelete,
+            onChangeCategory: _bulkChangeCategory,
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: SegmentedButton<_ViewMode>(
+              segments: const [
+                ButtonSegment(
+                  value: _ViewMode.list,
+                  label: Text('Liste'),
+                  icon: Icon(Icons.list),
+                ),
+                ButtonSegment(
+                  value: _ViewMode.calendar,
+                  label: Text('Takvim'),
+                  icon: Icon(Icons.calendar_month),
+                ),
+              ],
+              selected: {_view},
+              onSelectionChanged: (s) => setState(() => _view = s.first),
+            ),
           ),
-        ),
         Expanded(
-          child: _view == _ViewMode.calendar
+          child: _view == _ViewMode.calendar && !_selectionMode
               ? const ExpenseCalendarView()
               : _buildListBody(),
         ),
@@ -118,24 +204,26 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
   }
 
   /// Liste modunun gövdesi — filtreler + FutureBuilder.
+  /// Seçim modundayken filtre alanı gizlenir (uzun listede dağılmasın).
   Widget _buildListBody() {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: SearchField(
-                      hint: 'Açıklamada ara...',
-                      onChanged: (v) {
-                        _query = v;
-                        reload();
-                      },
-                    ),
+        if (!_selectionMode)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: SearchField(
+                        hint: 'Açıklamada ara...',
+                        onChanged: (v) {
+                          _query = v;
+                          reload();
+                        },
+                      ),
                   ),
                   const SizedBox(width: 8),
                   PopupMenuButton<ExpenseSort>(
@@ -224,7 +312,7 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
             ],
           ),
         ),
-        const Divider(height: 1),
+        if (!_selectionMode) const Divider(height: 1),
         Expanded(
           child: FutureBuilder<List<Expense>>(
             future: _future,
@@ -250,16 +338,91 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
                 child: ListView.builder(
                   padding: const EdgeInsets.fromLTRB(8, 8, 8, 80),
                   itemCount: items.length,
-                  itemBuilder: (_, i) => ExpenseTile(
-                    expense: items[i],
-                    onTap: () => _openDetail(items[i]),
-                  ),
+                  itemBuilder: (_, i) {
+                    final ex = items[i];
+                    final isSelected = _selectedIds.contains(ex.id);
+                    return ExpenseTile(
+                      expense: ex,
+                      selected: isSelected,
+                      onTap: () {
+                        // Seçim modundayken normal tap toggle yapar;
+                        // değilse detay ekranına geçer.
+                        if (_selectionMode) {
+                          _toggleSelection(ex.id!);
+                        } else {
+                          _openDetail(ex);
+                        }
+                      },
+                      onLongPress: () => _toggleSelection(ex.id!),
+                    );
+                  },
                 ),
               );
             },
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Toplu seçim modunda gösterilen üst toolbar.
+///
+/// AppBar HomeScreen tarafından yönetildiği için burada doğrudan
+/// değiştiremiyoruz; onun yerine ekran içinde benzer görünüm sağlayan
+/// bir bar gösteriyoruz. Sol: çıkış X, orta: "X seçili", sağ: aksiyonlar.
+class _SelectionToolbar extends StatelessWidget {
+  final int selectedCount;
+  final VoidCallback onClose;
+  final VoidCallback onDelete;
+  final VoidCallback onChangeCategory;
+
+  const _SelectionToolbar({
+    required this.selectedCount,
+    required this.onClose,
+    required this.onDelete,
+    required this.onChangeCategory,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Material(
+      color: primary.withValues(alpha: 0.12),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Row(
+            children: [
+              IconButton(
+                tooltip: 'Seçimi iptal et',
+                icon: const Icon(Icons.close),
+                onPressed: onClose,
+              ),
+              Expanded(
+                child: Text(
+                  '$selectedCount seçili',
+                  style: TextStyle(
+                    color: primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Kategori değiştir',
+                icon: const Icon(Icons.swap_horiz),
+                onPressed: onChangeCategory,
+              ),
+              IconButton(
+                tooltip: 'Sil',
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                onPressed: onDelete,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
