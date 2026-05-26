@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../app/app_constants.dart';
+import '../../app/locale_controller.dart';
 import '../../app/app_routes.dart';
 import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
@@ -49,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } on AuthException catch (e) {
       _showError(e.message);
     } catch (_) {
-      _showError('Beklenmeyen bir hata oluştu');
+      _showError(LocaleController.instance.l10n.unexpectedError);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -64,6 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -82,16 +83,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    AppStrings.appName,
+                    l.appName,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 32),
                   TextFormField(
                     controller: _usernameCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Kullanıcı adı',
-                      prefixIcon: Icon(Icons.person_outline),
+                    decoration: InputDecoration(
+                      labelText: l.usernameLabel,
+                      prefixIcon: const Icon(Icons.person_outline),
                     ),
                     textInputAction: TextInputAction.next,
                     autocorrect: false,
@@ -103,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _passwordCtrl,
                     obscureText: _obscure,
                     decoration: InputDecoration(
-                      labelText: 'Parola',
+                      labelText: l.passwordLabel,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -125,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           : () => Navigator.of(
                               context,
                             ).pushNamed(AppRoutes.forgotPassword),
-                      child: const Text('Parolamı unuttum'),
+                      child: Text(l.forgotPasswordLink),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -140,20 +141,20 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text('Giriş Yap'),
+                        : Text(l.loginButton),
                   ),
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Hesabın yok mu?'),
+                      Text(l.noAccountYet),
                       TextButton(
                         onPressed: _busy
                             ? null
                             : () => Navigator.of(
                                 context,
                               ).pushNamed(AppRoutes.register),
-                        child: const Text('Kayıt ol'),
+                        child: Text(l.registerTitle),
                       ),
                     ],
                   ),

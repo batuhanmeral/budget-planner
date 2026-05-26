@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_constants.dart';
 import '../../app/app_routes.dart';
+import '../../app/locale_controller.dart';
 import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
 import '../../widgets/unsaved_changes_dialog.dart';
@@ -80,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } on AuthException catch (e) {
       _showError(e.message);
     } catch (_) {
-      _showError('Beklenmeyen bir hata oluştu');
+      _showError(LocaleController.instance.l10n.unexpectedError);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -94,6 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return PopScope(
       canPop: !_isDirty,
       onPopInvokedWithResult: (didPop, _) async {
@@ -103,7 +105,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (ok && mounted) navigator.pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Kayıt Ol')),
+        appBar: AppBar(title: Text(l.registerTitle)),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -114,8 +116,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   TextFormField(
                     controller: _usernameCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Kullanıcı adı',
+                    decoration: InputDecoration(
+              labelText: l.usernameLabel,
                       prefixIcon: Icon(Icons.person_outline),
                     ),
                     autocorrect: false,
@@ -128,7 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     controller: _passwordCtrl,
                     obscureText: _obscure,
                     decoration: InputDecoration(
-                      labelText: 'Parola',
+                      labelText: l.passwordLabel,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -145,7 +147,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     controller: _password2Ctrl,
                     obscureText: _obscure2,
                     decoration: InputDecoration(
-                      labelText: 'Parola (tekrar)',
+                      labelText: l.passwordRepeatLabel,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -160,7 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Güvenlik Sorusu',
+                    l.securityQuestionLabel,
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                   const SizedBox(height: 8),
@@ -180,8 +182,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _answerCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Cevap',
+                    decoration: InputDecoration(
+              labelText: l.securityAnswerLabel,
                       prefixIcon: Icon(Icons.edit_outlined),
                     ),
                     textInputAction: TextInputAction.done,
@@ -199,7 +201,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text('Hesap Oluştur'),
+                        : Text(l.registerButton),
                   ),
                 ],
               ),

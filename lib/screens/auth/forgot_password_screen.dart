@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_routes.dart';
+import '../../app/locale_controller.dart';
+import '../../l10n/app_l10n.dart';
 import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
 
@@ -33,6 +35,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool _obscure = true;
   bool _obscure2 = true;
 
+  /// Tüm metotlardan erişim için kısayol — `build` dışındaki helper'lar
+  /// `context.l10n`'a doğrudan erişebilsin.
+  AppL10n get _l => LocaleController.instance.l10n;
+
   @override
   void dispose() {
     _usernameCtrl.dispose();
@@ -49,7 +55,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _loadQuestion() async {
     final username = _usernameCtrl.text.trim();
     if (Validators.requiredField(username) != null) {
-      _snack('Kullanıcı adı boş bırakılamaz');
+      _snack(_l.vRequired);
       return;
     }
     setState(() => _busy = true);
@@ -63,7 +69,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     } on AuthException catch (e) {
       _snack(e.message);
     } catch (_) {
-      _snack('Beklenmeyen bir hata oluştu');
+      _snack(_l.unexpectedError);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -71,7 +77,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   void _proceedToPassword() {
     if (Validators.securityAnswer(_answerCtrl.text) != null) {
-      _snack('Geçerli bir cevap girin');
+      _snack(_l.vAnswerMin);
       return;
     }
     setState(() => _step = _Step.newPassword);
@@ -79,11 +85,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _resetPassword() async {
     if (Validators.password(_newPasswordCtrl.text) != null) {
-      _snack('Parola en az 6 karakter, harf ve rakam içermeli');
+      _snack(_l.vPasswordMin);
       return;
     }
     if (_newPasswordCtrl.text != _newPassword2Ctrl.text) {
-      _snack('Parolalar eşleşmiyor');
+      _snack(_l.vPasswordsNotMatching);
       return;
     }
     setState(() => _busy = true);
@@ -94,7 +100,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         newPassword: _newPasswordCtrl.text,
       );
       if (!mounted) return;
-      _snack('Parola güncellendi. Lütfen giriş yapın.');
+      _snack(_l.pleaseLogin);
       Navigator.of(
         context,
       ).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
@@ -102,7 +108,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _snack(e.message);
       setState(() => _step = _Step.answer);
     } catch (_) {
-      _snack('Beklenmeyen bir hata oluştu');
+      _snack(_l.unexpectedError);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -111,7 +117,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Parolamı Unuttum')),
+      appBar: AppBar(title: Text(_l.forgotPasswordTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -129,12 +135,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Hesabınızı bulmak için kullanıcı adınızı girin.'),
+        Text(_l.forgotPasswordIntro),
         const SizedBox(height: 16),
         TextFormField(
           controller: _usernameCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Kullanıcı adı',
+          decoration: InputDecoration(
+              labelText: _l.usernameLabel,
             prefixIcon: Icon(Icons.person_outline),
           ),
           autocorrect: false,
@@ -144,7 +150,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: _busy ? null : _loadQuestion,
-          child: _busy ? const _Spinner() : const Text('Devam'),
+          child: _busy ? const _Spinner() : Text(_l.next),
         ),
       ],
     );
@@ -158,8 +164,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 16),
         TextFormField(
           controller: _answerCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Cevap',
+          decoration: InputDecoration(
+              labelText: _l.securityAnswerLabel,
             prefixIcon: Icon(Icons.edit_outlined),
           ),
           autocorrect: false,
@@ -169,7 +175,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: _busy ? null : _proceedToPassword,
-          child: const Text('Devam'),
+          child: Text(_l.next),
         ),
       ],
     );
@@ -179,13 +185,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Yeni parolanızı belirleyin.'),
+        Text(_l.setNewPasswordPrompt),
         const SizedBox(height: 16),
         TextFormField(
           controller: _newPasswordCtrl,
           obscureText: _obscure,
           decoration: InputDecoration(
-            labelText: 'Yeni parola',
+            labelText: _l.newPasswordLabel,
             prefixIcon: const Icon(Icons.lock_outline),
             suffixIcon: IconButton(
               icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
@@ -198,7 +204,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           controller: _newPassword2Ctrl,
           obscureText: _obscure2,
           decoration: InputDecoration(
-            labelText: 'Yeni parola (tekrar)',
+            labelText: _l.newPasswordRepeatLabel,
             prefixIcon: const Icon(Icons.lock_outline),
             suffixIcon: IconButton(
               icon: Icon(_obscure2 ? Icons.visibility : Icons.visibility_off),
@@ -209,7 +215,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: _busy ? null : _resetPassword,
-          child: _busy ? const _Spinner() : const Text('Parolayı Sıfırla'),
+          child: _busy ? const _Spinner() : Text(_l.resetPasswordButton),
         ),
       ],
     );

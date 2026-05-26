@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../app/app_constants.dart';
 import '../../models/expense.dart';
 import '../../services/auth_service.dart';
 import '../../services/expense_repository.dart';
@@ -88,7 +87,7 @@ class _ExpenseCalendarViewState extends State<ExpenseCalendarView> {
 
   @override
   Widget build(BuildContext context) {
-    final monthFmt = DateFormat('MMMM y', AppStrings.locale);
+    final monthFmt = DateFormat('MMMM y', Intl.defaultLocale);
     return Column(
       children: [
         // Ay seçici

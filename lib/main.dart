@@ -1,37 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:intl/intl.dart';
 
-import 'app/app_constants.dart';
 import 'app/app_routes.dart';
 import 'app/app_theme.dart';
+import 'app/locale_controller.dart';
 import 'app/theme_controller.dart';
 import 'services/database_service.dart';
 
 /// Uygulamanın giriş noktası.
 ///
-/// `runApp` çağrılmadan önce yapılması gereken async hazırlıklar:
-/// 1. Flutter binding'in başlaması ([WidgetsFlutterBinding.ensureInitialized])
-/// 2. Türkçe tarih sembollerinin yüklenmesi
-/// 3. Kullanıcının tema tercihinin yüklenmesi
-/// 4. SQLite veritabanının açılması (ve gerekirse oluşturulması)
+/// `runApp` öncesi hazırlıklar:
+/// 1. Flutter binding'in başlaması
+/// 2. TR + EN tarih sembollerinin yüklenmesi
+/// 3. Kullanıcı tema + dil tercihinin yüklenmesi
+/// 4. SQLite veritabanının açılması (gerekirse oluşturulması)
 Future<void> main() async {
-  // Async kod runApp öncesi çalışacaksa bu çağrı zorunlu — aksi takdirde
-  // platform channel'lar henüz hazır değil ve çökme yaşanır.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // intl paketinin Türkçe ay/gün isimlerini yükle. Bu olmadan
-  // DateFormat('d MMMM y', 'tr_TR') çağrısı runtime'da exception atar.
-  await initializeDateFormatting(AppStrings.locale, null);
-  Intl.defaultLocale = AppStrings.locale;
+  // İki locale için tarih sembollerini hazırla — kullanıcı dil
+  // değiştirdiğinde yeniden init gerektirmez.
+  await initializeDateFormatting('tr_TR', null);
+  await initializeDateFormatting('en_US', null);
 
-  // Tema tercihini prefs'ten yükle — ilk açılışta system varsayılan.
-  await ThemeController.instance.load();
+  // Locale + tema tercihlerini paralel yükle.
+  await Future.wait([
+    LocaleController.instance.load(),
+    ThemeController.instance.load(),
+  ]);
 
-  // DB'yi şimdiden aç; SplashScreen'in auto-login için hazır olsun.
-  // Path'i debug log'a yazıyoruz — geliştirme sırasında dosyaya
-  // ulaşabilmek için.
   final db = await DatabaseService.instance.database;
   debugPrint('SQLite ready at ${db.path}');
 
@@ -40,32 +37,34 @@ Future<void> main() async {
 
 /// MaterialApp wrapper — tema, locale, navigasyon kurulumu.
 ///
-/// [ThemeController] bir [ChangeNotifier] olduğu için [AnimatedBuilder]
-/// ile dinlenir; tema değişince MaterialApp rebuild olur.
+/// Hem [ThemeController] hem [LocaleController] [ChangeNotifier] olduğu
+/// için ikisini [Listenable.merge] ile birleştirip [AnimatedBuilder] ile
+/// dinleriz. Herhangi biri değişince MaterialApp rebuild olur.
 class BudgetPlannerApp extends StatelessWidget {
   const BudgetPlannerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: ThemeController.instance,
+      animation: Listenable.merge([
+        ThemeController.instance,
+        LocaleController.instance,
+      ]),
       builder: (context, _) {
+        final l10n = LocaleController.instance.l10n;
         return MaterialApp(
-          title: AppStrings.appName,
+          title: l10n.appName,
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
           themeMode: ThemeController.instance.mode,
-          // Locale ayarları — showDatePicker ve Material widget'larının
-          // Türkçe gelmesi için gerekli.
-          locale: const Locale('tr', 'TR'),
-          supportedLocales: const [Locale('tr', 'TR')],
+          locale: LocaleController.instance.locale,
+          supportedLocales: const [Locale('tr'), Locale('en')],
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          // Splash önce çalışır → auto-login kontrolü → Home veya Login.
           initialRoute: AppRoutes.splash,
           onGenerateRoute: AppRoutes.onGenerateRoute,
         );

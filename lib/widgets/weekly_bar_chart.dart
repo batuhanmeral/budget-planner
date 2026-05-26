@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../app/app_constants.dart';
 import '../services/expense_repository.dart';
 import '../utils/formatters.dart';
 
@@ -23,7 +22,7 @@ class WeeklyBarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxVal = data.fold<double>(0, (m, d) => d.total > m ? d.total : m);
-    final dayFmt = DateFormat('EEE', AppStrings.locale);
+    final dayFmt = DateFormat('EEE', Intl.defaultLocale);
     final theme = Theme.of(context);
     final barColor = theme.colorScheme.primary;
     final emptyColor = theme.colorScheme.surfaceContainerHighest;

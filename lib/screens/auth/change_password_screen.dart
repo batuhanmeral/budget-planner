@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../app/locale_controller.dart';
 import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
 import '../../widgets/unsaved_changes_dialog.dart';
@@ -58,12 +59,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Parola güncellendi')));
+      ).showSnackBar(
+        SnackBar(
+          content: Text(LocaleController.instance.l10n.passwordUpdatedSnack),
+        ),
+      );
       Navigator.of(context).pop(true);
     } on AuthException catch (e) {
       _snack(e.message);
     } catch (_) {
-      _snack('Beklenmeyen bir hata oluştu');
+      _snack(LocaleController.instance.l10n.unexpectedError);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -75,6 +80,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return PopScope(
       canPop: !_isDirty,
       onPopInvokedWithResult: (didPop, _) async {
@@ -84,7 +90,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         if (ok && mounted) navigator.pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Parolayı Değiştir')),
+        appBar: AppBar(title: Text(l.changePasswordTitle)),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -97,7 +103,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     controller: _oldCtrl,
                     obscureText: _obscureOld,
                     decoration: InputDecoration(
-                      labelText: 'Mevcut parola',
+                      labelText: l.currentPasswordLabel,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -114,7 +120,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     controller: _newCtrl,
                     obscureText: _obscureNew,
                     decoration: InputDecoration(
-                      labelText: 'Yeni parola',
+                      labelText: l.newPasswordLabel,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -131,7 +137,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     controller: _new2Ctrl,
                     obscureText: _obscureNew2,
                     decoration: InputDecoration(
-                      labelText: 'Yeni parola (tekrar)',
+                      labelText: l.newPasswordRepeatLabel,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -158,7 +164,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text('Güncelle'),
+                        : Text(l.update),
                   ),
                 ],
               ),

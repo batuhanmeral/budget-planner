@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../app/app_constants.dart';
 import '../../app/app_routes.dart';
+import '../../app/locale_controller.dart';
+import '../../l10n/app_l10n.dart';
 
 /// Tek bir onboarding sayfasının görsel verisi.
 class _OnboardingPage {
@@ -36,24 +38,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _index = 0;
 
-  static const _pages = <_OnboardingPage>[
+  List<_OnboardingPage> _buildPages(AppL10n l) => [
     _OnboardingPage(
       icon: Icons.receipt_long,
-      title: 'Harcamalarını takip et',
-      subtitle:
-          'Günlük harcamalarını kategorilerle birlikte kaydet, nereye ne kadar gittiğini hatırla.',
+      title: l.onboardingTitle1,
+      subtitle: l.onboardingSubtitle1,
     ),
     _OnboardingPage(
       icon: Icons.savings_outlined,
-      title: 'Bütçe belirle',
-      subtitle:
-          'Her kategori için aylık limit koy, %90\'a yaklaşınca uyarı al.',
+      title: l.onboardingTitle2,
+      subtitle: l.onboardingSubtitle2,
     ),
     _OnboardingPage(
       icon: Icons.pie_chart_outline,
-      title: 'Aylık rapor',
-      subtitle:
-          'Pasta grafik, haftalık bar ve yıllık özet ile finansal durumunu tek bakışta gör.',
+      title: l.onboardingTitle3,
+      subtitle: l.onboardingSubtitle3,
     ),
   ];
 
@@ -71,8 +70,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     navigator.pushReplacementNamed(AppRoutes.login);
   }
 
-  void _next() {
-    if (_index < _pages.length - 1) {
+  void _next(int total) {
+    if (_index < total - 1) {
       _controller.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
@@ -84,7 +83,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLast = _index == _pages.length - 1;
+    final l = context.l10n;
+    final pages = _buildPages(l);
+    final isLast = _index == pages.length - 1;
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -93,26 +94,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: isLast ? null : _finish,
-                child: Text(isLast ? '' : 'Atla'),
+                child: Text(isLast ? '' : l.skip),
               ),
             ),
             Expanded(
               child: PageView.builder(
                 controller: _controller,
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 onPageChanged: (i) => setState(() => _index = i),
-                itemBuilder: (_, i) => _PageView(page: _pages[i]),
+                itemBuilder: (_, i) => _PageView(page: pages[i]),
               ),
             ),
-            _DotsIndicator(count: _pages.length, current: _index),
+            _DotsIndicator(count: pages.length, current: _index),
             const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _next,
-                  child: Text(isLast ? 'Başla' : 'İleri'),
+                  onPressed: () => _next(pages.length),
+                  child: Text(isLast ? l.start : l.next),
                 ),
               ),
             ),

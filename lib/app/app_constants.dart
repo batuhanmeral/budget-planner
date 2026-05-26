@@ -14,11 +14,9 @@ class AppStrings {
   static const tabExpenses = 'Harcamalar';
   static const tabBudget = 'Bütçe';
 
+  /// Para birimi sembolü — dil değişimine bağlı değil; uygulama Türkçe
+  /// finansa odaklı, USD/EUR seçimi yok.
   static const currencySymbol = '₺';
-
-  /// `intl` paketinin tarih/sayı formatları için kullandığı locale.
-  /// `initializeDateFormatting` ve `Intl.defaultLocale` ile aynı olmalı.
-  static const locale = 'tr_TR';
 }
 
 /// Tek bir harcama kategorisinin tipli temsili.
@@ -138,4 +136,7 @@ class PrefsKeys {
 
   /// İlk açılış onboarding ekranı tamamlandı mı?
   static const onboardingSeen = 'onboarding_seen';
+
+  /// Kullanıcının dil seçimi: 'tr' veya 'en'.
+  static const languageCode = 'language_code';
 }

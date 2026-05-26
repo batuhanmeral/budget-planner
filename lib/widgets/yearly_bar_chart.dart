@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../app/app_constants.dart';
 import '../services/expense_repository.dart';
 
 /// 12 ay için aylık toplam harcamayı gösteren bar grafiği.
@@ -22,7 +21,7 @@ class YearlyBarChart extends StatelessWidget {
       (m, e) => e.total > m ? e.total : m,
     );
     // Türkçe ay kısaltması — DateFormat 'MMM' lokal ile.
-    final monthFmt = DateFormat('MMM', AppStrings.locale);
+    final monthFmt = DateFormat('MMM', Intl.defaultLocale);
     final theme = Theme.of(context);
     final barColor = theme.colorScheme.primary;
     final emptyColor = theme.colorScheme.surfaceContainerHighest;

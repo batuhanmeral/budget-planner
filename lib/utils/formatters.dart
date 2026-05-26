@@ -2,34 +2,32 @@ import 'package:intl/intl.dart';
 
 import '../app/app_constants.dart';
 
-/// Para birimi ve tarih gibi değerleri Türkçe locale'e göre biçimlendirir.
+/// Para birimi ve tarih gibi değerleri aktif locale'e göre biçimlendirir.
 ///
 /// `intl` paketinin [NumberFormat] ve [DateFormat] sınıflarını sarmalayarak
-/// uygulamanın her yerinde tek bir görsel tutarlılık sağlar. Format
-/// nesneleri pahalı oluşturulduğu için statik final olarak tutulur.
+/// uygulamanın her yerinde tek bir görsel tutarlılık sağlar.
+///
+/// **Dinamik locale:** Çoklu dil için her çağrıda `Intl.defaultLocale`
+/// okunarak formatter yaratılır. Bu sayede [LocaleController.setLocale]
+/// sonrası tüm formatlamalar yeni dile geçer.
 class Formatters {
   Formatters._();
 
-  // Para birimi: "1.234,56 ₺" formatında. Türkçe locale binlik ayracı
-  // nokta, ondalık ayracı virgül olarak basar.
-  static final NumberFormat _money = NumberFormat.currency(
-    locale: AppStrings.locale,
-    symbol: AppStrings.currencySymbol,
-    decimalDigits: 2,
-  );
+  /// Tutarı "1.234,56 ₺" (TR) veya "1,234.56 ₺" (EN) formatında döner.
+  /// Para birimi sembolü her dilde ₺ — uygulama Türkçe finansa odaklı.
+  static String money(double amount) {
+    return NumberFormat.currency(
+      locale: Intl.defaultLocale,
+      symbol: AppStrings.currencySymbol,
+      decimalDigits: 2,
+    ).format(amount);
+  }
 
-  // "25 Mayıs 2026" gibi uzun tarih (detay ekranlarında).
-  static final DateFormat _longDate = DateFormat('d MMMM y', AppStrings.locale);
+  /// Tarihi "25 Mayıs 2026" (TR) veya "May 25, 2026" (EN) formatında döner.
+  static String dateLong(DateTime d) =>
+      DateFormat.yMMMMd(Intl.defaultLocale).format(d);
 
-  // "25 May 2026" gibi kısa tarih (listelerde kompakt görünüm için).
-  static final DateFormat _shortDate = DateFormat('d MMM y', AppStrings.locale);
-
-  /// Tutarı "1.234,56 ₺" gibi Türkçe para birimi formatında döner.
-  static String money(double amount) => _money.format(amount);
-
-  /// Tarihi "25 Mayıs 2026" formatında döner.
-  static String dateLong(DateTime d) => _longDate.format(d);
-
-  /// Tarihi "25 May 2026" formatında döner — daha az yer kaplar.
-  static String dateShort(DateTime d) => _shortDate.format(d);
+  /// Tarihi "25 May 2026" (TR) veya "May 25, 2026" (EN) — kısa görünüm.
+  static String dateShort(DateTime d) =>
+      DateFormat.yMMMd(Intl.defaultLocale).format(d);
 }

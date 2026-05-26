@@ -1,6 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app/app_constants.dart';
+import '../app/locale_controller.dart';
+import '../l10n/app_l10n.dart';
 import '../models/user.dart';
 import 'category_service.dart';
 import 'password_hasher.dart';
@@ -32,6 +34,10 @@ class AuthException implements Exception {
 class AuthService {
   AuthService._();
   static final instance = AuthService._();
+
+  // Lokalize sözlüğe kısayol — exception mesajları aktif dile göre.
+  static String _msg(String Function(AppL10n l10n) f) =>
+      f(LocaleController.instance.l10n);
 
   // Brute-force koruma parametreleri.
   static const _maxFailedAttempts = 5;
@@ -75,7 +81,7 @@ class AuthService {
   }) async {
     final existing = await UserRepository.instance.findByUsername(username);
     if (existing != null) {
-      throw AuthException('Bu kullanıcı adı zaten kullanılıyor');
+      throw AuthException(_msg((l) => l.errUsernameTaken));
     }
     final salt = PasswordHasher.generateSalt();
     final passwordHash = PasswordHasher.hash(password, salt);
@@ -92,7 +98,7 @@ class AuthService {
     final saved = await UserRepository.instance.findById(id);
     if (saved == null) {
       // Beklenmedik durum — insert hemen sonra findById null veriyor.
-      throw AuthException('Kayıt sırasında bir hata oluştu');
+      throw AuthException(_msg((l) => l.unexpectedError));
     }
     _currentUser = saved;
     await _persistSession(id);
@@ -115,15 +121,13 @@ class AuthService {
   }) async {
     final user = await UserRepository.instance.findByUsername(username);
     if (user == null) {
-      throw AuthException('Kullanıcı adı veya parola hatalı');
+      throw AuthException(_msg((l) => l.errBadCredentials));
     }
     // Lockout kontrolü — UTC zamanla karşılaştır.
     final now = DateTime.now().toUtc();
     if (user.lockoutUntil != null && now.isBefore(user.lockoutUntil!.toUtc())) {
       final remaining = user.lockoutUntil!.toUtc().difference(now).inSeconds;
-      throw AuthException(
-        'Çok fazla başarısız deneme. $remaining saniye sonra tekrar deneyin.',
-      );
+      throw AuthException(_msg((l) => l.errLockedOut(remaining)));
     }
 
     final ok = PasswordHasher.verify(
@@ -143,7 +147,7 @@ class AuthService {
       } else {
         await UserRepository.instance.updateFailedAttempts(user.id!, attempts);
       }
-      throw AuthException('Kullanıcı adı veya parola hatalı');
+      throw AuthException(_msg((l) => l.errBadCredentials));
     }
 
     // Başarılı giriş — sayacı ve kilidi sıfırla, oturumu kaydet.
@@ -171,13 +175,13 @@ class AuthService {
     required String newPassword,
   }) async {
     final user = _currentUser;
-    if (user == null) throw AuthException('Oturum açık değil');
+    if (user == null) throw AuthException(_msg((l) => l.errSessionInactive));
     final ok = PasswordHasher.verify(
       password: oldPassword,
       salt: user.salt,
       expectedHash: user.passwordHash,
     );
-    if (!ok) throw AuthException('Mevcut parola hatalı');
+    if (!ok) throw AuthException(_msg((l) => l.errOldPasswordWrong));
 
     // Salt'ı her parola değişikliğinde tazelemek güvenlik için kritik.
     final newSalt = PasswordHasher.generateSalt();
@@ -200,13 +204,13 @@ class AuthService {
   /// Silme cascade ile harcamaları ve bütçeleri de düşürür.
   Future<void> deleteAccount(String password) async {
     final user = _currentUser;
-    if (user == null) throw AuthException('Oturum açık değil');
+    if (user == null) throw AuthException(_msg((l) => l.errSessionInactive));
     final ok = PasswordHasher.verify(
       password: password,
       salt: user.salt,
       expectedHash: user.passwordHash,
     );
-    if (!ok) throw AuthException('Parola hatalı');
+    if (!ok) throw AuthException(_msg((l) => l.errOldPasswordWrong));
 
     await UserRepository.instance.delete(user.id!);
     _currentUser = null;
@@ -221,7 +225,7 @@ class AuthService {
   Future<String> getSecurityQuestion(String username) async {
     final user = await UserRepository.instance.findByUsername(username);
     if (user == null) {
-      throw AuthException('Kullanıcı adı veya cevap hatalı');
+      throw AuthException(_msg((l) => l.errAnswerOrUsername));
     }
     return user.securityQuestion;
   }
@@ -238,7 +242,7 @@ class AuthService {
   }) async {
     final user = await UserRepository.instance.findByUsername(username);
     if (user == null) {
-      throw AuthException('Kullanıcı adı veya cevap hatalı');
+      throw AuthException(_msg((l) => l.errAnswerOrUsername));
     }
     final ok = PasswordHasher.verifyAnswer(
       answer: answer,
@@ -246,7 +250,7 @@ class AuthService {
       expectedHash: user.securityAnswerHash,
     );
     if (!ok) {
-      throw AuthException('Kullanıcı adı veya cevap hatalı');
+      throw AuthException(_msg((l) => l.errAnswerOrUsername));
     }
     final newSalt = PasswordHasher.generateSalt();
     final newHash = PasswordHasher.hash(newPassword, newSalt);

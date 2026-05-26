@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../app/app_constants.dart';
 import '../../app/app_routes.dart';
+import '../../app/locale_controller.dart';
 import '../../services/auth_service.dart';
 import '../budget/budget_list_screen.dart';
 import '../dashboard/dashboard_screen.dart';
@@ -38,14 +38,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (i == 2) _budgetKey.currentState?.reload();
   }
 
-  static const _titles = <String>[
-    AppStrings.tabDashboard,
-    AppStrings.tabExpenses,
-    AppStrings.tabBudget,
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
+    final titles = [l.tabDashboard, l.tabExpenses, l.tabBudget];
     final user = AuthService.instance.currentUser;
     if (user == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -58,10 +54,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text(_titles[_index]),
+        title: Text(titles[_index]),
         actions: [
           IconButton(
-            tooltip: 'Ayarlar',
+            tooltip: l.settingsTitle,
             icon: const Icon(Icons.settings_outlined),
             onPressed: () async {
               await Navigator.of(context).pushNamed(AppRoutes.settings);
@@ -95,21 +91,21 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: _onTabChange,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.pie_chart_outline),
-            selectedIcon: Icon(Icons.pie_chart),
-            label: AppStrings.tabDashboard,
+            icon: const Icon(Icons.pie_chart_outline),
+            selectedIcon: const Icon(Icons.pie_chart),
+            label: l.tabDashboard,
           ),
           NavigationDestination(
-            icon: Icon(Icons.list_alt_outlined),
-            selectedIcon: Icon(Icons.list_alt),
-            label: AppStrings.tabExpenses,
+            icon: const Icon(Icons.list_alt_outlined),
+            selectedIcon: const Icon(Icons.list_alt),
+            label: l.tabExpenses,
           ),
           NavigationDestination(
-            icon: Icon(Icons.savings_outlined),
-            selectedIcon: Icon(Icons.savings),
-            label: AppStrings.tabBudget,
+            icon: const Icon(Icons.savings_outlined),
+            selectedIcon: const Icon(Icons.savings),
+            label: l.tabBudget,
           ),
         ],
       ),

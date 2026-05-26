@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../app/app_constants.dart';
 import '../../app/app_routes.dart';
+import '../../app/locale_controller.dart';
 import '../../app/theme_controller.dart';
 import '../../services/auth_service.dart';
 import '../../services/expense_repository.dart';
@@ -12,15 +12,8 @@ import 'profile_screen.dart';
 
 /// Ayarlar ekranı.
 ///
-/// Bölümler:
-/// - Profil linki (kullanıcı bilgileri + hesap işlemleri)
-/// - Görünüm: tema seçimi ([RadioGroup] ile Sistem/Aydınlık/Karanlık)
-/// - Veri: "Tüm harcamalarımı sil" (onaylı, yalnızca aktif kullanıcı)
-/// - Hesap: Çıkış Yap
-/// - Hakkında: standart [showAboutDialog]
-///
-/// "Tüm harcamalarımı sil" bütçeleri korur; hesabı silmek tüm verileri
-/// götürür (Profil ekranında).
+/// Bölümler: Profil, Kategoriler, Tekrarlayan; Görünüm (tema), Dil
+/// (TR/EN), Veri (tüm harcamaları sil), Hesap (çıkış), Hakkında.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -30,14 +23,15 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _deleteAllExpenses() async {
+    final l = context.l10n;
     final user = AuthService.instance.currentUser;
     if (user == null) return;
     final ok = await showConfirmDialog(
       context,
-      title: 'Tüm harcamaları sil',
-      message:
-          'Tüm harcamalarınız kalıcı olarak silinecek. Bütçeleriniz korunur. Devam edilsin mi?',
-      confirmLabel: 'Hepsini sil',
+      title: l.deleteAllExpensesAction,
+      message: l.deleteAllExpensesAction,
+      confirmLabel: l.delete,
+      cancelLabel: l.cancel,
     );
     if (!ok || !mounted) return;
     try {
@@ -45,12 +39,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('$count harcama silindi')));
+      ).showSnackBar(SnackBar(content: Text('$count')));
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silinemedi. Lütfen tekrar deneyin.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.notDeleted)));
     }
   }
 
@@ -63,41 +57,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showAbout() {
+    final l = context.l10n;
     showAboutDialog(
       context: context,
-      applicationName: AppStrings.appName,
+      applicationName: l.appName,
       applicationVersion: '1.0.0',
       applicationIcon: Icon(
         Icons.account_balance_wallet,
         color: Theme.of(context).colorScheme.primary,
       ),
-      children: const [
-        SizedBox(height: 8),
-        Text(
-          'Günlük harcamalarınızı ve bütçe hedeflerinizi takip etmenize yardımcı olan basit bir uygulama.',
-        ),
+      children: [
+        const SizedBox(height: 8),
+        Text(l.aboutBody),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Scaffold(
-      appBar: AppBar(title: const Text('Ayarlar')),
+      appBar: AppBar(title: Text(l.settingsTitle)),
       body: ListView(
         children: [
           ListTile(
             leading: const Icon(Icons.person_outline),
-            title: const Text('Profil'),
+            title: Text(l.profileAction),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const ProfileScreen())),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+            ),
           ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.category_outlined),
-            title: const Text('Kategoriler'),
+            title: Text(l.categoriesAction),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const CategoriesScreen()),
@@ -106,14 +100,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.repeat),
-            title: const Text('Tekrarlayan Harcamalar'),
+            title: Text(l.recurringAction),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const RecurringListScreen()),
             ),
           ),
           const Divider(height: 1),
-          const _SectionHeader('Görünüm'),
+          _SectionHeader(l.sectionAppearance),
           AnimatedBuilder(
             animation: ThemeController.instance,
             builder: (_, _) {
@@ -122,19 +116,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: (v) {
                   if (v != null) ThemeController.instance.setMode(v);
                 },
-                child: const Column(
+                child: Column(
                   children: [
                     RadioListTile<ThemeMode>(
                       value: ThemeMode.system,
-                      title: Text('Sistem'),
+                      title: Text(l.themeSystem),
                     ),
                     RadioListTile<ThemeMode>(
                       value: ThemeMode.light,
-                      title: Text('Aydınlık'),
+                      title: Text(l.themeLight),
                     ),
                     RadioListTile<ThemeMode>(
                       value: ThemeMode.dark,
-                      title: Text('Karanlık'),
+                      title: Text(l.themeDark),
                     ),
                   ],
                 ),
@@ -142,26 +136,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           const Divider(height: 1),
-          const _SectionHeader('Veri'),
+          _SectionHeader(l.sectionLanguage),
+          AnimatedBuilder(
+            animation: LocaleController.instance,
+            builder: (_, _) {
+              return RadioGroup<String>(
+                groupValue: LocaleController.instance.locale.languageCode,
+                onChanged: (v) {
+                  if (v != null) {
+                    LocaleController.instance.setLocale(Locale(v));
+                  }
+                },
+                child: Column(
+                  children: [
+                    RadioListTile<String>(
+                      value: 'tr',
+                      title: Text(l.langTurkish),
+                    ),
+                    RadioListTile<String>(
+                      value: 'en',
+                      title: Text(l.langEnglish),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const Divider(height: 1),
+          _SectionHeader(l.sectionData),
           ListTile(
             leading: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
-            title: const Text(
-              'Tüm harcamalarımı sil',
-              style: TextStyle(color: Colors.red),
+            title: Text(
+              l.deleteAllExpensesAction,
+              style: const TextStyle(color: Colors.red),
             ),
             onTap: _deleteAllExpenses,
           ),
           const Divider(height: 1),
-          const _SectionHeader('Hesap'),
+          _SectionHeader(l.sectionAccount),
           ListTile(
             leading: const Icon(Icons.logout),
-            title: const Text('Çıkış Yap'),
+            title: Text(l.logoutAction),
             onTap: _logout,
           ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.info_outline),
-            title: const Text('Hakkında'),
+            title: Text(l.aboutAction),
             onTap: _showAbout,
           ),
         ],
