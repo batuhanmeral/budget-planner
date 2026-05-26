@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../app/app_constants.dart';
 import '../../app/app_routes.dart';
 import '../../services/auth_service.dart';
 import '../../services/recurring_expense_runner.dart';
@@ -26,6 +28,18 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _bootstrap() async {
+    // İlk açılış: onboarding henüz gösterilmediyse oraya yönlendir;
+    // kullanıcı "Başla"ya basınca onboarding kendisi login'e geçirir.
+    final prefs = await SharedPreferences.getInstance();
+    final seen = prefs.getBool(PrefsKeys.onboardingSeen) ?? false;
+    if (!seen) {
+      if (!mounted) return;
+      Navigator.of(
+        context,
+      ).pushReplacementNamed(AppRoutes.onboarding);
+      return;
+    }
+
     final user = await AuthService.instance.tryAutoLogin();
     if (user != null) {
       // Bu ay vakti gelmiş ama henüz eklenmemiş tekrarlayan harcamaları

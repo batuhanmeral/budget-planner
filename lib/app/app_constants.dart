@@ -135,4 +135,7 @@ class PrefsKeys {
 
   /// Kullanıcının tema tercihi: 'light' / 'dark' / 'system'.
   static const themeMode = 'theme_mode';
+
+  /// İlk açılış onboarding ekranı tamamlandı mı?
+  static const onboardingSeen = 'onboarding_seen';
 }

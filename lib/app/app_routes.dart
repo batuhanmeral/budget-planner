@@ -5,6 +5,7 @@ import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/settings/settings_screen.dart';
 
 /// Uygulamanın navigasyon haritası — named route sabitleri ve
@@ -22,6 +23,7 @@ class AppRoutes {
   AppRoutes._();
 
   static const splash = '/';
+  static const onboarding = '/onboarding';
   static const login = '/login';
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
@@ -41,6 +43,11 @@ class AppRoutes {
         return MaterialPageRoute(
           settings: settings,
           builder: (_) => const SplashScreen(),
+        );
+      case onboarding:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const OnboardingScreen(),
         );
       case login:
         return MaterialPageRoute(
