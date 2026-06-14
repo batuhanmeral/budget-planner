@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Liste boş olduğunda gösterilen merkezli, dostça boş-durum widget'ı.
-///
-/// İkon + başlık + opsiyonel alt yazı + opsiyonel buton.
-/// Tüm listelerde tutarlı görüntü için ortak widget olarak ayrıldı.
 class EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;

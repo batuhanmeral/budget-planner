@@ -6,7 +6,6 @@ import '../../app/app_routes.dart';
 import '../../app/locale_controller.dart';
 import '../../l10n/app_l10n.dart';
 
-/// Tek bir onboarding sayfasının görsel verisi.
 class _OnboardingPage {
   final IconData icon;
   final String title;
@@ -19,14 +18,6 @@ class _OnboardingPage {
   });
 }
 
-/// Uygulamanın ilk açılışında gösterilen 3 sayfalık tanıtım ekranı.
-///
-/// Her sayfa: büyük ikon + başlık + alt metin. Altta sayfa indicator
-/// dot'ları ve "Atla / İleri" butonları. Son sayfada "Başla" butonu
-/// onboarding'i tamamlar — prefs'e işaret yazılır ve login'e yönlendirilir.
-///
-/// Splash bu ekrana yalnızca [PrefsKeys.onboardingSeen] yoksa
-/// yönlendirir; sonraki açılışlarda atlanır.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -148,9 +139,9 @@ class _PageView extends StatelessWidget {
           Text(
             page.title,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 12),
           Text(
@@ -167,7 +158,6 @@ class _PageView extends StatelessWidget {
   }
 }
 
-/// Aktif sayfayı göstermek için 3 küçük nokta.
 class _DotsIndicator extends StatelessWidget {
   final int count;
   final int current;

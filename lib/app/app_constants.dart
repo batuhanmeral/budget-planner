@@ -1,29 +1,17 @@
 import 'package:flutter/material.dart';
 
-/// Uygulama genelinde kullanılan sabit metinler.
-///
-/// Türkçe karşılıkları tek noktadan değiştirilebilir; locale değişimi
-/// (örn. çoklu dil) eklendiğinde bu sınıf l10n çözümüyle değiştirilir.
 class AppStrings {
   AppStrings._();
 
-  static const appName = 'Bütçe Takipçisi';
+  static const appName = 'Balancio';
 
-  // BottomNavigationBar sekme isimleri.
   static const tabDashboard = 'Özet';
   static const tabExpenses = 'Harcamalar';
   static const tabBudget = 'Bütçe';
 
-  /// Para birimi sembolü — dil değişimine bağlı değil; uygulama Türkçe
-  /// finansa odaklı, USD/EUR seçimi yok.
   static const currencySymbol = '₺';
 }
 
-/// Tek bir harcama kategorisinin tipli temsili.
-///
-/// Kategoriler DB'de string olarak saklanır; bu sınıf renk ve ikon
-/// gibi UI bilgilerini taşımak için kullanılır. DB'den gelen string'i
-/// [AppCategories.byName] ile [AppCategory]'e çevirebilirsin.
 class AppCategory {
   final String name;
   final IconData icon;
@@ -34,19 +22,18 @@ class AppCategory {
     required this.icon,
     required this.color,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      other is AppCategory && other.name == name;
+
+  @override
+  int get hashCode => name.hashCode;
 }
 
-/// Sabit kategori listesi. UI dropdown'larında ve renk/ikon
-/// eşleşmesinde kullanılır.
-///
-/// Yeni kategori eklemek istersen [all] listesine ekle yeterli —
-/// dropdown'lar ve dashboard otomatik gösterir.
 class AppCategories {
   AppCategories._();
 
-  // Her kategori için Material Design'a uygun, kontrastlı bir renk
-  // seçildi. Dark mode'da da yeterli okunabilirlik sağlanması için
-  // 500-600 ton aralığında tutuldu.
   static const yemek = AppCategory(
     name: 'Yemek',
     icon: Icons.restaurant,
@@ -88,7 +75,6 @@ class AppCategories {
     color: Color(0xFF6B7280),
   );
 
-  /// Tüm kategorilerin sabit listesi. UI dropdown'ları bunu tüketir.
   static const all = <AppCategory>[
     yemek,
     ulasim,
@@ -100,19 +86,52 @@ class AppCategories {
     diger,
   ];
 
-  /// İsme göre kategori bul. DB'den string olarak gelen kategoriyi
-  /// UI temsiline çevirmek için. Bilinmeyen isim için "Diğer" döner —
-  /// hiçbir senaryoda crash yok.
   static AppCategory byName(String name) {
     return all.firstWhere((c) => c.name == name, orElse: () => diger);
   }
 }
 
-/// Parola sıfırlama için kullanılan sabit güvenlik soruları.
-///
-/// Sayı sınırlı tutuldu (4) — kullanıcı dropdown'da hızlıca seçebilsin.
-/// Sorular kullanıcının kolay hatırlayabileceği ama başkalarının
-/// tahmin edemeyeceği bilgileri sorar.
+class IncomeSources {
+  IncomeSources._();
+
+  static const maas = AppCategory(
+    name: 'Maaş',
+    icon: Icons.account_balance_wallet,
+    color: Color(0xFF16A34A),
+  );
+  static const ekGelir = AppCategory(
+    name: 'Ek Gelir',
+    icon: Icons.work_outline,
+    color: Color(0xFF0EA5E9),
+  );
+  static const yatirim = AppCategory(
+    name: 'Yatırım',
+    icon: Icons.trending_up,
+    color: Color(0xFF9333EA),
+  );
+  static const kira = AppCategory(
+    name: 'Kira Geliri',
+    icon: Icons.home_work_outlined,
+    color: Color(0xFFF59E0B),
+  );
+  static const hediye = AppCategory(
+    name: 'Hediye',
+    icon: Icons.card_giftcard,
+    color: Color(0xFFEC4899),
+  );
+  static const diger = AppCategory(
+    name: 'Diğer',
+    icon: Icons.more_horiz,
+    color: Color(0xFF6B7280),
+  );
+
+  static const all = <AppCategory>[maas, ekGelir, yatirim, kira, hediye, diger];
+
+  static AppCategory byName(String name) {
+    return all.firstWhere((s) => s.name == name, orElse: () => diger);
+  }
+}
+
 class SecurityQuestions {
   SecurityQuestions._();
 
@@ -124,19 +143,16 @@ class SecurityQuestions {
   ];
 }
 
-/// `shared_preferences` anahtarları — typo'ya karşı tek nokta.
 class PrefsKeys {
   PrefsKeys._();
 
-  /// Auto-login için saklanan son giriş yapan kullanıcı ID'si.
   static const lastUserId = 'last_user_id';
 
-  /// Kullanıcının tema tercihi: 'light' / 'dark' / 'system'.
   static const themeMode = 'theme_mode';
 
-  /// İlk açılış onboarding ekranı tamamlandı mı?
   static const onboardingSeen = 'onboarding_seen';
 
-  /// Kullanıcının dil seçimi: 'tr' veya 'en'.
   static const languageCode = 'language_code';
+
+  static const currencyCode = 'currency_code';
 }

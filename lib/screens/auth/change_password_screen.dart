@@ -5,11 +5,6 @@ import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
 import '../../widgets/unsaved_changes_dialog.dart';
 
-/// Profil → "Parolayı değiştir" akışı.
-///
-/// Mevcut parola onayı + yeni parola + tekrar. [AuthService.changePassword]
-/// yeni bir salt + hash üretir. Her parola alanında göster/gizle toggle.
-/// [PopScope] kaybolmuş değişiklik koruması.
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
 
@@ -57,9 +52,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         newPassword: _newCtrl.text,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(LocaleController.instance.l10n.passwordUpdatedSnack),
         ),

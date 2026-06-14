@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../app/app_constants.dart';
 import '../../app/locale_controller.dart';
@@ -8,6 +9,8 @@ import '../../services/auth_service.dart';
 import '../../services/budget_repository.dart';
 import '../../services/category_service.dart';
 import '../../services/expense_repository.dart';
+import '../../services/income_repository.dart';
+import '../../utils/date_utils.dart' as du;
 import '../../utils/formatters.dart';
 import '../../utils/money_utils.dart';
 import '../../widgets/budget_alert_banner.dart';
@@ -15,48 +18,71 @@ import '../../widgets/category_chip.dart';
 import '../../widgets/category_pie_chart.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/expense_tile.dart';
-import '../../widgets/quick_add_sheet.dart';
 import '../../widgets/weekly_bar_chart.dart';
-import '../../widgets/yearly_bar_chart.dart';
 import '../expenses/expense_detail_screen.dart';
 
-/// Dashboard'un tek seferde yüklediği tüm verileri taşıyan immutable
-/// veri sınıfı. `Future.wait` ile paralel sorgular sonucu üretilir.
+const _positive = Color(0xFF16A34A);
+const _recentLimit = 8;
+
+class _MonthNet {
+  final int year;
+  final int month;
+  final double income;
+  final double expense;
+  const _MonthNet({
+    required this.year,
+    required this.month,
+    required this.income,
+    required this.expense,
+  });
+  double get net => roundMoney(income - expense);
+}
+
 class _DashboardData {
   final double monthlyTotal;
-  final double previousMonthTotal;
+  final double monthlyIncome;
   final List<DailyTotal> dailyTotals;
   final Map<String, double> monthlyByCategory;
+  final Map<String, double> weeklyByCategory;
+  final Map<String, double> yearByCategory;
+  final Map<String, double> monthlyIncomeBySource;
+  final Map<String, double> weeklyIncomeBySource;
+  final Map<String, double> yearIncomeBySource;
   final List<Expense> recent;
   final List<Budget> budgets;
-  final List<String> mostUsedCategoryNames;
+  final List<_MonthNet> trend;
 
   const _DashboardData({
     required this.monthlyTotal,
-    required this.previousMonthTotal,
+    required this.monthlyIncome,
     required this.dailyTotals,
     required this.monthlyByCategory,
+    required this.weeklyByCategory,
+    required this.yearByCategory,
+    required this.monthlyIncomeBySource,
+    required this.weeklyIncomeBySource,
+    required this.yearIncomeBySource,
     required this.recent,
     required this.budgets,
-    required this.mostUsedCategoryNames,
+    required this.trend,
   });
+
+  double get netBalance => roundMoney(monthlyIncome - monthlyTotal);
+  double get weeklyTotal => weeklyByCategory.values.fold(0.0, (s, v) => s + v);
+  double get monthlyExpenseTotal => monthlyTotal;
+  double get yearTotal => yearByCategory.values.fold(0.0, (s, v) => s + v);
+  double get monthlyIncomeTotal =>
+      monthlyIncomeBySource.values.fold(0.0, (s, v) => s + v);
+  double get weeklyIncomeTotal =>
+      weeklyIncomeBySource.values.fold(0.0, (s, v) => s + v);
+  double get yearIncomeTotal =>
+      yearIncomeBySource.values.fold(0.0, (s, v) => s + v);
 }
 
-/// Özet ekranı — kullanıcının bu ayki finansal durumuna tek bakışta
-/// erişim sağlar.
-///
-/// İçerikler (yukarıdan aşağıya):
-/// 1. Karşılama (Merhaba, {username})
-/// 2. Bu ay toplam + geçen aya göre yüzde değişim
-/// 3. Bütçe uyarı banner'ı (varsa)
-/// 4. Son 7 gün bar grafiği
-/// 5. Kategori dağılımı (toplam + yüzde)
-/// 6. Son 5 harcama (tıklanabilir)
-///
-/// Tüm sorgular [Future.wait] ile paralel çalışır — DB rountrip sayısı
-/// minimize edilir.
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final VoidCallback? onSeeAllExpenses;
+
+  const DashboardScreen({super.key, this.onSeeAllExpenses});
 
   @override
   State<DashboardScreen> createState() => DashboardScreenState();
@@ -76,54 +102,113 @@ class DashboardScreenState extends State<DashboardScreen> {
     if (user == null) {
       return const _DashboardData(
         monthlyTotal: 0,
-        previousMonthTotal: 0,
+        monthlyIncome: 0,
         dailyTotals: [],
         monthlyByCategory: {},
+        weeklyByCategory: {},
+        yearByCategory: {},
+        monthlyIncomeBySource: {},
+        weeklyIncomeBySource: {},
+        yearIncomeBySource: {},
         recent: [],
         budgets: [],
-        mostUsedCategoryNames: [],
+        trend: [],
       );
     }
+    final uid = user.id!;
     final now = DateTime.now();
-    final prev = DateTime(now.year, now.month - 1, 1);
+    final weekStart = du.startOfWeek(now);
+    final weekEnd = du.endOfWeek(now);
 
     final results = await Future.wait([
       ExpenseRepository.instance.getMonthlyTotal(
-        userId: user.id!,
+        userId: uid,
         year: now.year,
         month: now.month,
       ),
-      ExpenseRepository.instance.getMonthlyTotal(
-        userId: user.id!,
-        year: prev.year,
-        month: prev.month,
-      ),
       ExpenseRepository.instance.getDailyTotalsForLastNDays(
-        userId: user.id!,
+        userId: uid,
         days: 7,
       ),
       ExpenseRepository.instance.getMonthlyTotalByCategory(
-        userId: user.id!,
+        userId: uid,
         year: now.year,
         month: now.month,
       ),
-      ExpenseRepository.instance.getAllForUser(user.id!),
-      BudgetRepository.instance.getAllForUser(user.id!),
-      ExpenseRepository.instance.getMostUsedCategoryNames(
-        userId: user.id!,
-        limit: 4,
+      ExpenseRepository.instance.getRangeTotalByCategory(
+        userId: uid,
+        from: weekStart,
+        to: weekEnd,
+      ),
+      ExpenseRepository.instance.getAllForUser(uid),
+      BudgetRepository.instance.getAllForUser(uid),
+      IncomeRepository.instance.getMonthlyTotal(
+        userId: uid,
+        year: now.year,
+        month: now.month,
+      ),
+      IncomeRepository.instance.getMonthlyTotalBySource(
+        userId: uid,
+        year: now.year,
+        month: now.month,
+      ),
+      IncomeRepository.instance.getRangeTotalBySource(
+        userId: uid,
+        from: weekStart,
+        to: weekEnd,
+      ),
+      ExpenseRepository.instance.getYearTotalByCategory(
+        userId: uid,
+        year: now.year,
+      ),
+      IncomeRepository.instance.getYearTotalBySource(
+        userId: uid,
+        year: now.year,
       ),
     ]);
+
+    final months = List.generate(
+      6,
+      (i) => DateTime(now.year, now.month - 5 + i, 1),
+    );
+    final trendResults = await Future.wait([
+      for (final m in months) ...[
+        IncomeRepository.instance.getMonthlyTotal(
+          userId: uid,
+          year: m.year,
+          month: m.month,
+        ),
+        ExpenseRepository.instance.getMonthlyTotal(
+          userId: uid,
+          year: m.year,
+          month: m.month,
+        ),
+      ],
+    ]);
+    final trend = [
+      for (var i = 0; i < months.length; i++)
+        _MonthNet(
+          year: months[i].year,
+          month: months[i].month,
+          income: trendResults[i * 2],
+          expense: trendResults[i * 2 + 1],
+        ),
+    ];
 
     final all = results[4] as List<Expense>;
     return _DashboardData(
       monthlyTotal: results[0] as double,
-      previousMonthTotal: results[1] as double,
-      dailyTotals: results[2] as List<DailyTotal>,
-      monthlyByCategory: results[3] as Map<String, double>,
-      recent: all.take(5).toList(),
+      dailyTotals: results[1] as List<DailyTotal>,
+      monthlyByCategory: results[2] as Map<String, double>,
+      weeklyByCategory: results[3] as Map<String, double>,
+      recent: all.take(_recentLimit).toList(),
       budgets: results[5] as List<Budget>,
-      mostUsedCategoryNames: results[6] as List<String>,
+      monthlyIncome: results[6] as double,
+      monthlyIncomeBySource: results[7] as Map<String, double>,
+      weeklyIncomeBySource: results[8] as Map<String, double>,
+      yearByCategory: results[9] as Map<String, double>,
+      yearIncomeBySource: results[10] as Map<String, double>,
+      trend: trend,
     );
   }
 
@@ -158,6 +243,10 @@ class DashboardScreenState extends State<DashboardScreen> {
     final l = context.l10n;
     final user = AuthService.instance.currentUser;
     if (user == null) return const SizedBox.shrink();
+    final displayName =
+        (user.fullName != null && user.fullName!.trim().isNotEmpty)
+        ? user.fullName!.trim()
+        : user.username;
 
     return FutureBuilder<_DashboardData>(
       future: _future,
@@ -174,30 +263,40 @@ class DashboardScreenState extends State<DashboardScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
             children: [
-              _GreetingCard(username: user.username),
+              _GreetingCard(name: displayName),
               const SizedBox(height: 12),
-              _QuickAddCard(
-                mostUsedCategoryNames: data.mostUsedCategoryNames,
-                onSaved: reload,
-              ),
-              const SizedBox(height: 12),
-              _MonthTotalCard(
-                total: data.monthlyTotal,
-                previous: data.previousMonthTotal,
+              _NetBalanceCard(
+                income: data.monthlyIncome,
+                expense: data.monthlyTotal,
+                net: data.netBalance,
               ),
               const SizedBox(height: 12),
               BudgetAlertBanner(alerts: _buildAlerts(data)),
               const SizedBox(height: 4),
               _WeeklyChartCard(data: data.dailyTotals),
               const SizedBox(height: 12),
-              const _YearlyChartCard(),
+              _SixMonthSummaryCard(trend: data.trend),
               const SizedBox(height: 12),
               _CategoryBreakdownCard(
-                totalByCategory: data.monthlyByCategory,
-                total: data.monthlyTotal,
+                monthlyByCategory: data.monthlyByCategory,
+                weeklyByCategory: data.weeklyByCategory,
+                yearByCategory: data.yearByCategory,
+                monthlyTotal: data.monthlyTotal,
+                weeklyTotal: data.weeklyTotal,
+                yearTotal: data.yearTotal,
+                monthlyIncomeBySource: data.monthlyIncomeBySource,
+                weeklyIncomeBySource: data.weeklyIncomeBySource,
+                yearIncomeBySource: data.yearIncomeBySource,
+                monthlyIncomeTotal: data.monthlyIncomeTotal,
+                weeklyIncomeTotal: data.weeklyIncomeTotal,
+                yearIncomeTotal: data.yearIncomeTotal,
               ),
               const SizedBox(height: 12),
-              _RecentExpensesCard(recent: data.recent, onTap: _openExpense),
+              _RecentExpensesCard(
+                recent: data.recent,
+                onTap: _openExpense,
+                onSeeAll: widget.onSeeAllExpenses,
+              ),
             ],
           ),
         );
@@ -207,8 +306,8 @@ class DashboardScreenState extends State<DashboardScreen> {
 }
 
 class _GreetingCard extends StatelessWidget {
-  final String username;
-  const _GreetingCard({required this.username});
+  final String name;
+  const _GreetingCard({required this.name});
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +321,7 @@ class _GreetingCard extends StatelessWidget {
           child: const Icon(Icons.waving_hand),
         ),
         title: Text(
-          context.l10n.greeting(username),
+          context.l10n.greeting(name),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(context.l10n.greetingSubtitle),
@@ -231,37 +330,22 @@ class _GreetingCard extends StatelessWidget {
   }
 }
 
-class _MonthTotalCard extends StatelessWidget {
-  final double total;
-  final double previous;
+class _NetBalanceCard extends StatelessWidget {
+  final double income;
+  final double expense;
+  final double net;
 
-  const _MonthTotalCard({required this.total, required this.previous});
-
-  ({IconData icon, String label, Color color})? _delta(BuildContext context) {
-    final l = context.l10n;
-    if (previous <= 0) return null;
-    final diff = total - previous;
-    final pct = (diff / previous * 100).abs();
-    if (diff == 0) {
-      return (
-        icon: Icons.remove,
-        label: l.sameAsLastMonth,
-        color: Theme.of(context).colorScheme.outline,
-      );
-    }
-    final up = diff > 0;
-    return (
-      icon: up ? Icons.arrow_upward : Icons.arrow_downward,
-      label: up
-          ? l.comparedToLastMonthIncrease(pct.toInt())
-          : l.comparedToLastMonthDecrease(pct.toInt()),
-      color: up ? Colors.red : Colors.green,
-    );
-  }
+  const _NetBalanceCard({
+    required this.income,
+    required this.expense,
+    required this.net,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final d = _delta(context);
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final netColor = net >= 0 ? _positive : theme.colorScheme.error;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -269,41 +353,99 @@ class _MonthTotalCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              context.l10n.monthTotalLabel,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
+              l.netBalanceTitle,
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.outline,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              Formatters.money(roundMoney(total)),
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 8),
-            if (d != null)
-              Row(
-                children: [
-                  Icon(d.icon, size: 16, color: d.color),
-                  const SizedBox(width: 4),
-                  Text(
-                    d.label,
-                    style: TextStyle(
-                      color: d.color,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              )
-            else
-              Text(
-                context.l10n.noDataLastMonth,
-                style: TextStyle(color: Theme.of(context).colorScheme.outline),
+              Formatters.money(net),
+              style: theme.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: netColor,
               ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _BalanceLeg(
+                    icon: Icons.arrow_upward,
+                    color: _positive,
+                    label: l.incomeWord,
+                    amount: income,
+                  ),
+                ),
+                Expanded(
+                  child: _BalanceLeg(
+                    icon: Icons.arrow_downward,
+                    color: theme.colorScheme.error,
+                    label: l.expenseWord,
+                    amount: expense,
+                  ),
+                ),
+              ],
+            ),
+            if (income <= 0) ...[
+              const SizedBox(height: 8),
+              Text(
+                l.noIncomeThisMonth,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _BalanceLeg extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final double amount;
+
+  const _BalanceLeg({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.amount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 16,
+          backgroundColor: color.withValues(alpha: 0.15),
+          foregroundColor: color,
+          child: Icon(icon, size: 18),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+              ),
+              Text(
+                Formatters.money(amount),
+                style: const TextStyle(fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -320,7 +462,10 @@ class _WeeklyChartCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(context.l10n.weeklyChartTitle, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              context.l10n.weeklyChartTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 12),
             WeeklyBarChart(data: data),
           ],
@@ -330,180 +475,84 @@ class _WeeklyChartCard extends StatelessWidget {
   }
 }
 
-/// Dashboard'da "Hızlı Ekle" satırı — kullanıcının en sık kullandığı
-/// kategoriler için chip'ler. Tek dokunuş bottom sheet'i açar; içine
-/// sadece tutar/not yazılır, kategori + tarih (bugün) sabit gelir.
-///
-/// Kullanıcının hiç harcaması yoksa varsayılan 4 sabit kategori
-/// (Yemek, Ulaşım, Market, Fatura) gösterilir — yeni kullanıcı için
-/// kısa yol sağlanır.
-class _QuickAddCard extends StatelessWidget {
-  final List<String> mostUsedCategoryNames;
-  final VoidCallback onSaved;
-
-  const _QuickAddCard({
-    required this.mostUsedCategoryNames,
-    required this.onSaved,
-  });
-
-  static const _defaultFallback = ['Yemek', 'Ulaşım', 'Market', 'Fatura'];
+class _SixMonthSummaryCard extends StatefulWidget {
+  final List<_MonthNet> trend;
+  const _SixMonthSummaryCard({required this.trend});
 
   @override
-  Widget build(BuildContext context) {
-    final names = mostUsedCategoryNames.isEmpty
-        ? _defaultFallback
-        : mostUsedCategoryNames;
-    final categories = names
-        .map(CategoryService.instance.byName)
-        .toList(growable: false);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.flash_on, size: 18),
-                const SizedBox(width: 6),
-                Text(
-                  context.l10n.quickAddTitle,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 40,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (_, i) {
-                  final c = categories[i];
-                  return ActionChip(
-                    avatar: Icon(c.icon, color: c.color, size: 18),
-                    label: Text(c.name),
-                    onPressed: () async {
-                      final saved = await showQuickAddSheet(
-                        context,
-                        category: c,
-                      );
-                      if (saved) onSaved();
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  State<_SixMonthSummaryCard> createState() => _SixMonthSummaryCardState();
 }
 
-/// Dashboard'da yıllık 12 ay özetini gösteren kart.
-///
-/// Kendi state'i ile çalışır — dış [_DashboardData]'dan bağımsız yıl
-/// seçimi yapılabilsin. Yıl değişince yalnızca bu kart yeniden yüklenir.
-class _YearlyChartCard extends StatefulWidget {
-  const _YearlyChartCard();
-
-  @override
-  State<_YearlyChartCard> createState() => _YearlyChartCardState();
-}
-
-class _YearlyChartCardState extends State<_YearlyChartCard> {
-  late int _year;
-  late Future<List<MonthTotal>> _future;
+class _SixMonthSummaryCardState extends State<_SixMonthSummaryCard> {
+  int? _selected;
 
   @override
   void initState() {
     super.initState();
-    _year = DateTime.now().year;
-    _future = _load();
-  }
-
-  Future<List<MonthTotal>> _load() {
-    final user = AuthService.instance.currentUser;
-    if (user == null) return Future.value(const <MonthTotal>[]);
-    return ExpenseRepository.instance.getYearlyTotalsByMonth(
-      userId: user.id!,
-      year: _year,
-    );
-  }
-
-  void _shiftYear(int delta) {
-    setState(() {
-      _year += delta;
-      _future = _load();
-    });
+    if (widget.trend.isNotEmpty) _selected = widget.trend.length - 1;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final trend = widget.trend;
+    if (trend.isEmpty) return const SizedBox.shrink();
+
+    final expenseColor = theme.colorScheme.primary;
+    final monthFmt = DateFormat('MMM', Intl.defaultLocale);
+    final maxVal = trend.fold<double>(0, (m, e) {
+      final localMax = e.income > e.expense ? e.income : e.expense;
+      return localMax > m ? localMax : m;
+    });
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(l.sixMonthSummaryTitle, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
             Row(
               children: [
-                Text(
-                  context.l10n.yearlyChartTitle,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const Spacer(),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.chevron_left),
-                  onPressed: () => _shiftYear(-1),
-                ),
-                Text(
-                  '$_year',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.chevron_right),
-                  // Gelecek yıllara da gitmesine izin ver — veri 0 görünür.
-                  onPressed: () => _shiftYear(1),
-                ),
+                _LegendDot(color: _positive, label: l.incomeWord),
+                const SizedBox(width: 16),
+                _LegendDot(color: expenseColor, label: l.expenseWord),
               ],
             ),
-            const SizedBox(height: 8),
-            FutureBuilder<List<MonthTotal>>(
-              future: _future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const SizedBox(
-                    height: 160,
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                final data = snapshot.data ?? const <MonthTotal>[];
-                final yearTotal = data.fold<double>(
-                  0,
-                  (s, m) => s + m.total,
-                );
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.l10n.yearlyTotal(Formatters.money(yearTotal)),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 150,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  for (var i = 0; i < trend.length; i++)
+                    Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => setState(() => _selected = i),
+                        child: _MonthBars(
+                          month: trend[i],
+                          maxVal: maxVal,
+                          selected: _selected == i,
+                          incomeColor: _positive,
+                          expenseColor: expenseColor,
+                          label: monthFmt.format(
+                            DateTime(trend[i].year, trend[i].month),
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    YearlyBarChart(data: data),
-                  ],
-                );
-              },
+                ],
+              ),
             ),
+            if (_selected != null) ...[
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              _MonthDetail(month: trend[_selected!]),
+            ],
           ],
         ),
       ),
@@ -511,26 +560,286 @@ class _YearlyChartCardState extends State<_YearlyChartCard> {
   }
 }
 
-class _CategoryBreakdownCard extends StatelessWidget {
-  final Map<String, double> totalByCategory;
-  final double total;
+class _MonthBars extends StatelessWidget {
+  final _MonthNet month;
+  final double maxVal;
+  final bool selected;
+  final Color incomeColor;
+  final Color expenseColor;
+  final String label;
 
-  const _CategoryBreakdownCard({
-    required this.totalByCategory,
-    required this.total,
+  const _MonthBars({
+    required this.month,
+    required this.maxVal,
+    required this.selected,
+    required this.incomeColor,
+    required this.expenseColor,
+    required this.label,
   });
 
   @override
   Widget build(BuildContext context) {
-    final entries = totalByCategory.entries.where((e) => e.value > 0).toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final theme = Theme.of(context);
+    final emptyColor = theme.colorScheme.surfaceContainerHighest;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Column(
+        children: [
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, c) {
+                double barH(double v) => maxVal == 0
+                    ? 2.0
+                    : (v / maxVal * (c.maxHeight - 2)).clamp(
+                        v > 0 ? 2.0 : 0.0,
+                        c.maxHeight,
+                      );
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _Bar(
+                      height: barH(month.income),
+                      color: month.income > 0 ? incomeColor : emptyColor,
+                    ),
+                    const SizedBox(width: 2),
+                    _Bar(
+                      height: barH(month.expense),
+                      color: month.expense > 0 ? expenseColor : emptyColor,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: selected
+                  ? theme.colorScheme.primary.withValues(alpha: 0.12)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
+class _Bar extends StatelessWidget {
+  final double height;
+  final Color color;
+  const _Bar({required this.height, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 7,
+      height: height,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(2)),
+      ),
+    );
+  }
+}
+
+class _MonthDetail extends StatelessWidget {
+  final _MonthNet month;
+  const _MonthDetail({required this.month});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final theme = Theme.of(context);
+    final netColor = month.net >= 0 ? _positive : theme.colorScheme.error;
+    final monthName = DateFormat(
+      'MMMM yyyy',
+      Intl.defaultLocale,
+    ).format(DateTime(month.year, month.month));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          monthName,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.outline,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _DetailItem(
+                label: l.incomeWord,
+                value: Formatters.money(month.income),
+                color: _positive,
+              ),
+            ),
+            Expanded(
+              child: _DetailItem(
+                label: l.expenseWord,
+                value: Formatters.money(month.expense),
+                color: theme.colorScheme.error,
+              ),
+            ),
+            Expanded(
+              child: _DetailItem(
+                label: l.netWord,
+                value: Formatters.money(month.net),
+                color: netColor,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  const _DetailItem({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.outline,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(fontWeight: FontWeight.w700, color: color),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+}
+
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+  const _LegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
+      ],
+    );
+  }
+}
+
+enum _Kind { expense, income }
+
+enum _Period { week, month, year }
+
+class _CategoryBreakdownCard extends StatefulWidget {
+  final Map<String, double> monthlyByCategory;
+  final Map<String, double> weeklyByCategory;
+  final Map<String, double> yearByCategory;
+  final double monthlyTotal;
+  final double weeklyTotal;
+  final double yearTotal;
+  final Map<String, double> monthlyIncomeBySource;
+  final Map<String, double> weeklyIncomeBySource;
+  final Map<String, double> yearIncomeBySource;
+  final double monthlyIncomeTotal;
+  final double weeklyIncomeTotal;
+  final double yearIncomeTotal;
+
+  const _CategoryBreakdownCard({
+    required this.monthlyByCategory,
+    required this.weeklyByCategory,
+    required this.yearByCategory,
+    required this.monthlyTotal,
+    required this.weeklyTotal,
+    required this.yearTotal,
+    required this.monthlyIncomeBySource,
+    required this.weeklyIncomeBySource,
+    required this.yearIncomeBySource,
+    required this.monthlyIncomeTotal,
+    required this.weeklyIncomeTotal,
+    required this.yearIncomeTotal,
+  });
+
+  @override
+  State<_CategoryBreakdownCard> createState() => _CategoryBreakdownCardState();
+}
+
+class _CategoryBreakdownCardState extends State<_CategoryBreakdownCard> {
+  _Kind _kind = _Kind.expense;
+  _Period _period = _Period.month;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final isIncome = _kind == _Kind.income;
+
+    final Map<String, double> map;
+    final double total;
+    if (isIncome) {
+      map = switch (_period) {
+        _Period.week => widget.weeklyIncomeBySource,
+        _Period.month => widget.monthlyIncomeBySource,
+        _Period.year => widget.yearIncomeBySource,
+      };
+      total = switch (_period) {
+        _Period.week => widget.weeklyIncomeTotal,
+        _Period.month => widget.monthlyIncomeTotal,
+        _Period.year => widget.yearIncomeTotal,
+      };
+    } else {
+      map = switch (_period) {
+        _Period.week => widget.weeklyByCategory,
+        _Period.month => widget.monthlyByCategory,
+        _Period.year => widget.yearByCategory,
+      };
+      total = switch (_period) {
+        _Period.week => widget.weeklyTotal,
+        _Period.month => widget.monthlyTotal,
+        _Period.year => widget.yearTotal,
+      };
+    }
+
+    AppCategory resolve(String name) => isIncome
+        ? CategoryService.instance.incomeByName(name)
+        : CategoryService.instance.byName(name);
+
+    final entries = map.entries.where((e) => e.value > 0).toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
     final slices = [
       for (final e in entries)
-        PieSlice(
-          category: CategoryService.instance.byName(e.key),
-          amount: e.value,
-        ),
+        PieSlice(category: resolve(e.key), amount: e.value),
     ];
 
     return Card(
@@ -540,15 +849,50 @@ class _CategoryBreakdownCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              context.l10n.categoryBreakdownTitle,
+              l.categoryBreakdownTitle,
               style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<_Kind>(
+              segments: [
+                ButtonSegment(
+                  value: _Kind.expense,
+                  label: Text(l.expenseDistribution),
+                ),
+                ButtonSegment(
+                  value: _Kind.income,
+                  label: Text(l.incomeDistribution),
+                ),
+              ],
+              selected: {_kind},
+              onSelectionChanged: (s) => setState(() => _kind = s.first),
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<_Period>(
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(
+                  value: _Period.week,
+                  label: Text(l.filterThisWeek),
+                ),
+                ButtonSegment(
+                  value: _Period.month,
+                  label: Text(l.filterThisMonth),
+                ),
+                ButtonSegment(
+                  value: _Period.year,
+                  label: Text(l.filterThisYear),
+                ),
+              ],
+              selected: {_period},
+              onSelectionChanged: (s) => setState(() => _period = s.first),
             ),
             const SizedBox(height: 12),
             if (entries.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
-                  context.l10n.noExpensesThisMonth,
+                  isIncome ? l.noIncomeThisPeriod : l.noExpensesThisMonth,
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.outline,
                   ),
@@ -561,7 +905,7 @@ class _CategoryBreakdownCard extends StatelessWidget {
               const SizedBox(height: 8),
               for (final e in entries) ...[
                 _CategoryRow(
-                  category: CategoryService.instance.byName(e.key),
+                  category: resolve(e.key),
                   amount: e.value,
                   percent: total <= 0 ? 0 : (e.value / total),
                 ),
@@ -614,11 +958,17 @@ class _CategoryRow extends StatelessWidget {
 class _RecentExpensesCard extends StatelessWidget {
   final List<Expense> recent;
   final ValueChanged<Expense> onTap;
+  final VoidCallback? onSeeAll;
 
-  const _RecentExpensesCard({required this.recent, required this.onTap});
+  const _RecentExpensesCard({
+    required this.recent,
+    required this.onTap,
+    this.onSeeAll,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -626,7 +976,7 @@ class _RecentExpensesCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              context.l10n.recentExpensesTitle,
+              l.recentExpensesTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -635,12 +985,24 @@ class _RecentExpensesCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 child: EmptyState(
                   icon: Icons.history,
-                  title: context.l10n.emptyExpensesTitle,
+                  title: l.emptyExpensesTitle,
                 ),
               )
-            else
+            else ...[
               for (final e in recent)
                 ExpenseTile(expense: e, onTap: () => onTap(e)),
+              if (onSeeAll != null) ...[
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.center,
+                  child: TextButton.icon(
+                    onPressed: onSeeAll,
+                    icon: const Icon(Icons.arrow_forward, size: 18),
+                    label: Text(l.showMore),
+                  ),
+                ),
+              ],
+            ],
           ],
         ),
       ),

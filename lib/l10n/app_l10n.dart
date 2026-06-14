@@ -1,20 +1,8 @@
-/// Uygulamanın çoklu dil (TR/EN) altyapısı.
-///
-/// `flutter_localizations` + `gen_l10n` (ARB codegen) yerine elle yazılmış
-/// sade bir sınıf yapısı kullanılıyor — proje küçük olduğu için bu
-/// daha az ağır ve build adımı eklemiyor.
-///
-/// Yeni bir dil eklemek için [AppL10n] sınıfından bir alt sınıf oluşturup
-/// [LocaleController]'a ekleyin.
-///
-/// Kullanım: `context.l10n.loginTitle` veya doğrudan
-/// `LocaleController.instance.l10n.loginTitle`.
 library;
 
 abstract class AppL10n {
   const AppL10n();
 
-  // --- COMMON ---
   String get appName;
   String get tabDashboard;
   String get tabExpenses;
@@ -43,7 +31,6 @@ abstract class AppL10n {
   String get all;
   String get preview;
 
-  // --- AUTH ---
   String get loginTitle;
   String get loginButton;
   String get registerTitle;
@@ -75,7 +62,6 @@ abstract class AppL10n {
   String get errOldPasswordWrong;
   String get errSessionInactive;
 
-  // --- VALIDATORS ---
   String get vRequired;
   String vMaxLength(int max);
   String get vMoneyInvalid;
@@ -88,7 +74,6 @@ abstract class AppL10n {
   String get vPasswordsNotMatching;
   String get vAnswerMin;
 
-  // --- SETTINGS ---
   String get settingsTitle;
   String get sectionAppearance;
   String get sectionLanguage;
@@ -109,7 +94,6 @@ abstract class AppL10n {
   String get deleteAllExpensesMessage;
   String snackExpensesDeleted(int count);
 
-  // --- ONBOARDING ---
   String get onboardingTitle1;
   String get onboardingSubtitle1;
   String get onboardingTitle2;
@@ -117,13 +101,11 @@ abstract class AppL10n {
   String get onboardingTitle3;
   String get onboardingSubtitle3;
 
-  // --- UNSAVED CHANGES DIALOG ---
   String get unsavedTitle;
   String get unsavedMessage;
   String get unsavedDiscard;
   String get unsavedStay;
 
-  // --- EXPENSES ---
   String get expenseDetailTitle;
   String get newExpenseTitle;
   String get editExpenseTitle;
@@ -144,6 +126,7 @@ abstract class AppL10n {
   String get sortTooltip;
   String get filterThisWeek;
   String get filterThisMonth;
+  String get filterThisYear;
   String get filterCustom;
   String get emptyExpensesTitle;
   String get emptyExpensesSubtitle;
@@ -161,7 +144,6 @@ abstract class AppL10n {
   String get changeCategoryTooltip;
   String get clearSelectionTooltip;
 
-  // --- DASHBOARD ---
   String greeting(String username);
   String get greetingSubtitle;
   String get monthTotalLabel;
@@ -173,12 +155,17 @@ abstract class AppL10n {
   String get yearlyChartTitle;
   String yearlyTotal(String moneyText);
   String get categoryBreakdownTitle;
+  String get expenseDistribution;
+  String get incomeDistribution;
+  String get noIncomeThisPeriod;
+  String get sixMonthSummaryTitle;
+  String get netWord;
+  String get showMore;
   String get recentExpensesTitle;
   String get quickAddTitle;
   String get tapSliceHint;
   String get noExpensesThisMonth;
 
-  // --- BUDGETS ---
   String get newBudgetTitle;
   String get editBudgetTitle;
   String get monthlyLimitLabel;
@@ -195,7 +182,6 @@ abstract class AppL10n {
   String get editTooltip;
   String get deleteTooltip;
 
-  // --- PROFILE ---
   String get profileTitle;
   String memberSinceLabel(String date);
   String get changePasswordAction;
@@ -205,7 +191,6 @@ abstract class AppL10n {
   String get deleteAccountErrorSnack;
   String get passwordConfirmLabel;
 
-  // --- CATEGORIES ---
   String get categoriesTitle;
   String get sectionFixedCategories;
   String get sectionCustomCategories;
@@ -221,7 +206,6 @@ abstract class AppL10n {
   String get errCategoryNotAdded;
   String get pickCategoryTitle;
 
-  // --- RECURRING ---
   String get recurringTitle;
   String get newRecurringTitle;
   String get editRecurringTitle;
@@ -237,6 +221,60 @@ abstract class AppL10n {
   String get emptyRecurringTitle;
   String get emptyRecurringSubtitle;
 
-  // --- QUICK ADD ---
   String get quickAddSheetTitle;
+
+  String get tabIncome;
+  String get newIncomeTitle;
+  String get editIncomeTitle;
+  String get incomeSourceLabel;
+  String get sortSourceAsc;
+  String get emptyIncomesTitle;
+  String get emptyIncomesSubtitle;
+  String get emptyIncomesFilterSubtitle;
+  String get deleteIncomeTitle;
+  String get deleteIncomeMessage;
+  String get snackIncomeDeleted;
+  String get deleteAllIncomesAction;
+  String get deleteAllIncomesTitle;
+  String get deleteAllIncomesMessage;
+  String snackIncomesDeleted(int count);
+
+  String get netBalanceTitle;
+  String get incomeWord;
+  String get expenseWord;
+  String get noIncomeThisMonth;
+
+  String get sectionCurrency;
+
+  String get editNameAction;
+  String get editNameTitle;
+  String get fullNameLabel;
+  String get fullNameNotSet;
+  String get snackProfileUpdated;
+  String get changeUsernameAction;
+  String get changeUsernameTitle;
+  String get newUsernameLabel;
+  String get snackUsernameUpdated;
+  String get changePhotoTitle;
+  String get photoFromCamera;
+  String get photoFromGallery;
+  String get removePhoto;
+
+  String get incomeDetailTitle;
+  String get incomeNotFound;
+
+  String get repeatMonthly;
+  String repeatMonthlyHint(int day);
+  String get repeatMonthlyOffHint;
+
+  String get sectionFixedIncomeSources;
+  String get sectionCustomIncomeSources;
+  String get emptyCustomIncomeSourcesTitle;
+  String get emptyCustomIncomeSourcesSubtitle;
+
+  String get statsTitle;
+  String get avgIncomeLabel;
+  String get avgExpenseLabel;
+  String get savingsRateLabel;
+  String get netTrendTitle;
 }

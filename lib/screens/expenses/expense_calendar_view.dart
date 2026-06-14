@@ -11,14 +11,6 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/expense_tile.dart';
 import 'expense_detail_screen.dart';
 
-/// Harcamaları ay takvimi olarak gösteren alternatif görünüm.
-///
-/// Üstte ay seçici (◀ Mayıs 2026 ▶), altta 7 sütunlu takvim grid'i.
-/// Her gün hücresinde: gün numarası + (o gün harcama varsa) o günün
-/// toplamına göre orantılı renkli bar.
-///
-/// Gün tıklanırsa bottom sheet'te o günkü harcamalar listelenir;
-/// listede bir satıra tıklanırsa detay ekranı açılır.
 class ExpenseCalendarView extends StatefulWidget {
   const ExpenseCalendarView({super.key});
 
@@ -38,7 +30,6 @@ class _ExpenseCalendarViewState extends State<ExpenseCalendarView> {
     _future = _load();
   }
 
-  /// Görüntülenen ay için { gün → toplam tutar } haritası üretir.
   Future<Map<int, double>> _load() async {
     final user = AuthService.instance.currentUser;
     if (user == null) return const {};
@@ -77,12 +68,8 @@ class _ExpenseCalendarViewState extends State<ExpenseCalendarView> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (sheetCtx) => _DayExpensesSheet(
-        day: day,
-        expenses: dayExpenses,
-      ),
+      builder: (sheetCtx) => _DayExpensesSheet(day: day, expenses: dayExpenses),
     );
-    // Bottom sheet'ten dönüşte (örn. detayda silme) ay verisini tazele.
     setState(() => _future = _load());
   }
 
@@ -91,7 +78,6 @@ class _ExpenseCalendarViewState extends State<ExpenseCalendarView> {
     final monthFmt = DateFormat('MMMM y', Intl.defaultLocale);
     return Column(
       children: [
-        // Ay seçici
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
@@ -117,10 +103,8 @@ class _ExpenseCalendarViewState extends State<ExpenseCalendarView> {
             ],
           ),
         ),
-        // Hafta günleri başlığı (Pzt-Paz)
         const _WeekdayHeader(),
         const SizedBox(height: 4),
-        // Takvim grid'i
         Expanded(
           child: FutureBuilder<Map<int, double>>(
             future: _future,
@@ -147,10 +131,7 @@ class _WeekdayHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ISO 8601: Pazartesi haftanın ilk günü.
-    // Pazartesi-Pazar arasını locale'e göre döndür (kısa formatla).
     final fmt = DateFormat.E(Intl.defaultLocale);
-    // 2026-05-25 = Pazartesi; bu tarihten itibaren 7 gün etiketleri üret.
     final labels = List.generate(
       7,
       (i) => fmt.format(DateTime(2026, 5, 25).add(Duration(days: i))),
@@ -194,10 +175,8 @@ class _CalendarGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final firstDay = DateTime(month.year, month.month, 1);
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
-    // ISO weekday: Pzt=1..Paz=7. İlk gün hangi sütunda?
     final leadingEmpty = firstDay.weekday - DateTime.monday;
     final totalCells = leadingEmpty + daysInMonth;
-    // Tam haftalar (7'nin katı) için trailing boş hücreler.
     final trailingEmpty = (7 - (totalCells % 7)) % 7;
     final cells = totalCells + trailingEmpty;
 
@@ -230,8 +209,7 @@ class _CalendarGrid extends StatelessWidget {
           amount: amount,
           maxAmount: maxAmount,
           isToday: isToday,
-          onTap: () =>
-              onDayTap(DateTime(month.year, month.month, dayNumber)),
+          onTap: () => onDayTap(DateTime(month.year, month.month, dayNumber)),
         );
       },
     );
@@ -257,7 +235,6 @@ class _DayCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     final hasAmount = amount > 0;
-    // Bar yüksekliği: ayın max gününe göre %20-100 arası orantı.
     final ratio = maxAmount <= 0 ? 0.0 : (amount / maxAmount).clamp(0.0, 1.0);
 
     return InkWell(
@@ -269,9 +246,7 @@ class _DayCell extends StatelessWidget {
           border: Border.all(
             color: isToday
                 ? primary
-                : Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.2),
+                : Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
             width: isToday ? 1.5 : 1,
           ),
           color: hasAmount ? primary.withValues(alpha: 0.06) : null,

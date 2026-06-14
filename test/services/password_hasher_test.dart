@@ -1,4 +1,4 @@
-import 'package:budget_planner/services/password_hasher.dart';
+import 'package:balancio/services/password_hasher.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -6,7 +6,7 @@ void main() {
     final a = PasswordHasher.generateSalt();
     final b = PasswordHasher.generateSalt();
     expect(a, isNot(equals(b)));
-    expect(a.length, 32); // 16 bytes hex
+    expect(a.length, 32);
   });
 
   test('same password + same salt produces same hash', () {

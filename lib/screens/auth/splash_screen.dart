@@ -5,14 +5,8 @@ import '../../app/app_constants.dart';
 import '../../app/app_routes.dart';
 import '../../services/auth_service.dart';
 import '../../services/recurring_expense_runner.dart';
+import '../../services/recurring_income_runner.dart';
 
-/// Uygulama açılışında gösterilen, auto-login kontrolü yapan ekran.
-///
-/// `tryAutoLogin` sonucuna göre Home'a veya Login'e yönlendirir; back
-/// stack'i temizleyerek splash'a geri dönmeyi engeller.
-///
-/// İlk frame'den sonra çalışsın diye `addPostFrameCallback` kullanılır
-/// — initState'te doğrudan Navigator çağırmak hata verir.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -28,23 +22,18 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _bootstrap() async {
-    // İlk açılış: onboarding henüz gösterilmediyse oraya yönlendir;
-    // kullanıcı "Başla"ya basınca onboarding kendisi login'e geçirir.
     final prefs = await SharedPreferences.getInstance();
     final seen = prefs.getBool(PrefsKeys.onboardingSeen) ?? false;
     if (!seen) {
       if (!mounted) return;
-      Navigator.of(
-        context,
-      ).pushReplacementNamed(AppRoutes.onboarding);
+      Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
       return;
     }
 
     final user = await AuthService.instance.tryAutoLogin();
     if (user != null) {
-      // Bu ay vakti gelmiş ama henüz eklenmemiş tekrarlayan harcamaları
-      // otomatik olarak Expense tablosuna ekle. Sessiz çalışır.
       await RecurringExpenseRunner.runForUser(user.id!);
+      await RecurringIncomeRunner.runForUser(user.id!);
     }
     if (!mounted) return;
     final route = user != null ? AppRoutes.home : AppRoutes.login;

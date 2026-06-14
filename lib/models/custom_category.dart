@@ -3,20 +3,15 @@ import 'package:flutter/material.dart';
 import '../app/app_constants.dart';
 import '../utils/date_utils.dart';
 
-/// Kullanıcının kendi tanımladığı kategori.
-///
-/// Sabit [AppCategories] listesine ek olarak `custom_categories`
-/// tablosundan gelir. Çalışma anında her ikisi tek bir liste haline
-/// getirilir (bkz. CategoryService).
-///
-/// [iconCode] Material Icons font'undaki bir codePoint olmalı
-/// (örn. `Icons.coffee.codePoint`). [colorInt] ARGB tam sayısı.
 class CustomCategory {
   final int? id;
   final int userId;
   final String name;
   final int iconCode;
   final int colorInt;
+
+  final String kind;
+
   final DateTime? createdAt;
 
   const CustomCategory({
@@ -25,11 +20,10 @@ class CustomCategory {
     required this.name,
     required this.iconCode,
     required this.colorInt,
+    this.kind = 'expense',
     this.createdAt,
   });
 
-  /// [AppCategory]'ye dönüştürür — UI'da sabit kategorilerle aynı arayüze
-  /// sahip olur.
   AppCategory toAppCategory() => AppCategory(
     name: name,
     icon: IconData(iconCode, fontFamily: 'MaterialIcons'),
@@ -42,6 +36,7 @@ class CustomCategory {
     'name': name,
     'icon_code': iconCode,
     'color_int': colorInt,
+    'kind': kind,
     if (createdAt != null) 'created_at': createdAt!.toUtc().toIso8601String(),
   };
 
@@ -51,6 +46,7 @@ class CustomCategory {
     name: map['name'] as String,
     iconCode: map['icon_code'] as int,
     colorInt: map['color_int'] as int,
+    kind: (map['kind'] as String?) ?? 'expense',
     createdAt: parseIsoOrNull(map['created_at'] as String?),
   );
 }

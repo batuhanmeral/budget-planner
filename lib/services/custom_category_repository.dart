@@ -1,16 +1,10 @@
 import '../models/custom_category.dart';
 import 'database_service.dart';
 
-/// `custom_categories` tablosu için CRUD repository.
-///
-/// Sabit kategorilerle birleştirme `CategoryService` katmanında yapılır
-/// (bkz. [CategoryService]). Bu repo yalnızca DB ile konuşur.
 class CustomCategoryRepository {
   CustomCategoryRepository._();
   static final instance = CustomCategoryRepository._();
 
-  /// Yeni özel kategori ekler. UNIQUE(user_id, name) varsa sqflite
-  /// exception fırlatır — UI tarafı önce findByName ile kontrol etmeli.
   Future<int> insert(CustomCategory category) async {
     final db = await DatabaseService.instance.database;
     return db.insert('custom_categories', category.toMap());
@@ -39,27 +33,33 @@ class CustomCategoryRepository {
     );
   }
 
-  Future<List<CustomCategory>> getAllForUser(int userId) async {
+  Future<List<CustomCategory>> getAllForUser(int userId, {String? kind}) async {
     final db = await DatabaseService.instance.database;
+    final where = StringBuffer('user_id = ?');
+    final args = <Object?>[userId];
+    if (kind != null) {
+      where.write(' AND kind = ?');
+      args.add(kind);
+    }
     final rows = await db.query(
       'custom_categories',
-      where: 'user_id = ?',
-      whereArgs: [userId],
+      where: where.toString(),
+      whereArgs: args,
       orderBy: 'name COLLATE NOCASE ASC',
     );
     return rows.map(CustomCategory.fromMap).toList();
   }
 
-  /// Aynı isimde kategori var mı kontrol — form'da çakışma uyarısı için.
   Future<bool> existsByName({
     required int userId,
     required String name,
+    String kind = 'expense',
   }) async {
     final db = await DatabaseService.instance.database;
     final rows = await db.query(
       'custom_categories',
-      where: 'user_id = ? AND name = ? COLLATE NOCASE',
-      whereArgs: [userId, name],
+      where: 'user_id = ? AND name = ? COLLATE NOCASE AND kind = ?',
+      whereArgs: [userId, name, kind],
       limit: 1,
     );
     return rows.isNotEmpty;

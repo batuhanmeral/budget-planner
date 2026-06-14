@@ -11,14 +11,6 @@ import '../../widgets/category_chip.dart';
 import '../../widgets/confirm_dialog.dart';
 import 'expense_form_screen.dart';
 
-/// Tek bir harcamayı tüm detaylarıyla gösteren ekran.
-///
-/// Üstte büyük tutar + kategori avatar, sonra tarih ve not satırları,
-/// altta Düzenle / Sil butonları.
-///
-/// `pop(true)` ile parent listeye "yeniden yükle" sinyali döner.
-/// `_changed` bayrağı düzenleme sonrasında işaretlenir; sistem geri
-/// tuşunda bile parent reload edilebilsin diye [PopScope] override eder.
 class ExpenseDetailScreen extends StatefulWidget {
   final int expenseId;
 
@@ -105,9 +97,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
             }
             final e = snapshot.data;
             if (e == null) {
-              return Center(
-                child: Text(l.expenseNotFound),
-              );
+              return Center(child: Text(l.expenseNotFound));
             }
             final cat = CategoryService.instance.byName(e.category);
             return SingleChildScrollView(

@@ -2,11 +2,6 @@ import '../app/locale_controller.dart';
 import '../l10n/app_l10n.dart';
 import 'money_utils.dart';
 
-/// Form alanlarının [TextFormField.validator] callback'leri için statik
-/// fonksiyon koleksiyonu.
-///
-/// Hata mesajları aktif dile göre [LocaleController.instance.l10n]'dan
-/// alınır. Bu sayede dil değişince validator mesajları da değişir.
 class Validators {
   Validators._();
 
@@ -37,6 +32,12 @@ class Validators {
     if (parsed == null) return _l((l) => l.vMoneyInvalid);
     if (parsed <= 0) return _l((l) => l.vMoneyPositive);
     return null;
+  }
+
+  static String? fullName(String? value) {
+    final required = requiredField(value);
+    if (required != null) return required;
+    return maxLength(value!.trim(), 50);
   }
 
   static String? username(String? value) {

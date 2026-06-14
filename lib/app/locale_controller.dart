@@ -7,31 +7,18 @@ import '../l10n/app_l10n_en.dart';
 import '../l10n/app_l10n_tr.dart';
 import 'app_constants.dart';
 
-/// Uygulamanın aktif dilini yöneten singleton servis.
-///
-/// Hem [Locale] (Flutter widget tarafı için) hem [AppL10n] (uygulama
-/// string'leri için) sunar. [ChangeNotifier] olduğu için MaterialApp
-/// dil değişiminde rebuild olur.
-///
-/// Dil tercihi `shared_preferences` üzerinden kalıcıdır.
 class LocaleController extends ChangeNotifier {
   LocaleController._();
   static final instance = LocaleController._();
 
-  // Varsayılan: Türkçe.
   Locale _locale = const Locale('tr');
   Locale get locale => _locale;
 
-  /// `intl` paketinin [DateFormat] / [NumberFormat] gibi sınıflarda
-  /// kullanılan locale string'i — 'tr_TR' veya 'en_US'.
-  String get intlLocale =>
-      _locale.languageCode == 'en' ? 'en_US' : 'tr_TR';
+  String get intlLocale => _locale.languageCode == 'en' ? 'en_US' : 'tr_TR';
 
-  /// Aktif dilin string sözlüğü.
   AppL10n get l10n =>
       _locale.languageCode == 'en' ? const AppL10nEn() : const AppL10nTr();
 
-  /// Prefs'ten kayıtlı dili yükler. main() içinde runApp öncesi çağrılır.
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
     final code = prefs.getString(PrefsKeys.languageCode);
@@ -40,8 +27,6 @@ class LocaleController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Yeni dili seçer, prefs'e yazar, Intl.defaultLocale'i günceller ve
-  /// dinleyicilere haber verir. MaterialApp rebuild olur.
   Future<void> setLocale(Locale locale) async {
     _locale = locale;
     Intl.defaultLocale = intlLocale;
@@ -51,7 +36,30 @@ class LocaleController extends ChangeNotifier {
   }
 }
 
-/// `context.l10n` kısayolu — daha okunaklı kullanım için.
+class AppReactiveScope extends InheritedWidget {
+  final String localeCode;
+  final String currencyCode;
+
+  const AppReactiveScope({
+    super.key,
+    required this.localeCode,
+    required this.currencyCode,
+    required super.child,
+  });
+
+  static void watch(BuildContext context) {
+    context.dependOnInheritedWidgetOfExactType<AppReactiveScope>();
+  }
+
+  @override
+  bool updateShouldNotify(AppReactiveScope oldWidget) =>
+      oldWidget.localeCode != localeCode ||
+      oldWidget.currencyCode != currencyCode;
+}
+
 extension AppL10nContext on BuildContext {
-  AppL10n get l10n => LocaleController.instance.l10n;
+  AppL10n get l10n {
+    AppReactiveScope.watch(this);
+    return LocaleController.instance.l10n;
+  }
 }

@@ -7,21 +7,12 @@ import '../app/locale_controller.dart';
 import '../utils/formatters.dart';
 import 'category_chip.dart';
 
-/// Tek bir pasta dilimi için veri.
 class PieSlice {
   final AppCategory category;
   final double amount;
   const PieSlice({required this.category, required this.amount});
 }
 
-/// Kategori dağılımını donut (delikli pasta) olarak gösteren grafik.
-///
-/// Saf [CustomPainter] ile çizilir — ek paket yok. Ortadaki halkada
-/// toplam tutar gösterilir. Bir dilime tıklanırsa dilim hafifçe dışa
-/// kayar (seçim feedback'i) ve altta o kategorinin etiketi + tutarı +
-/// yüzdesi belirir.
-///
-/// Boş listede placeholder gösterir.
 class CategoryPieChart extends StatefulWidget {
   final List<PieSlice> slices;
   final double size;
@@ -46,12 +37,10 @@ class _CategoryPieChartState extends State<CategoryPieChart> {
     final dist = math.sqrt(dx * dx + dy * dy);
     final outerR = widget.size / 2;
     final innerR = outerR * 0.55;
-    // Halka dışı veya iç delik içindeki dokunuşları yok say.
     if (dist > outerR || dist < innerR) {
       setState(() => _selectedIndex = null);
       return;
     }
-    // atan2 -pi..pi döner; -90° başlangıç (saat 12) için kaydır.
     var angle = math.atan2(dy, dx) + math.pi / 2;
     if (angle < 0) angle += 2 * math.pi;
     var cumulative = 0.0;
@@ -164,10 +153,6 @@ class _SelectionLabel extends StatelessWidget {
   }
 }
 
-/// CustomPainter — donut dilimlerini çizer.
-///
-/// Saat 12'den başlar, saat yönünde dolar. Seçili dilim 6px dışa kayar
-/// — vurgulu görüntü için.
 class _PiePainter extends CustomPainter {
   final List<PieSlice> slices;
   final double total;
@@ -187,7 +172,6 @@ class _PiePainter extends CustomPainter {
     final outerR = size.width / 2;
     final innerR = outerR * 0.55;
 
-    // Başlangıç açısı: saat 12 (yukarı) = -pi/2.
     var start = -math.pi / 2;
 
     for (var i = 0; i < slices.length; i++) {
@@ -195,19 +179,12 @@ class _PiePainter extends CustomPainter {
       final sweep = share * 2 * math.pi;
       final isSelected = selectedIndex == i;
 
-      // Seçili dilim için dilimin orta açısı yönünde hafif kaydırma.
-      var sliceCenter = center;
-      if (isSelected) {
-        final midAngle = start + sweep / 2;
-        const offset = 8.0;
-        sliceCenter = Offset(
-          center.dx + math.cos(midAngle) * offset,
-          center.dy + math.sin(midAngle) * offset,
-        );
-      }
+      final sliceCenter = center;
 
       final paint = Paint()
-        ..color = slices[i].category.color
+        ..color = (selectedIndex == null || isSelected)
+            ? slices[i].category.color
+            : slices[i].category.color.withValues(alpha: 0.45)
         ..style = PaintingStyle.fill;
       final path = Path()
         ..moveTo(sliceCenter.dx, sliceCenter.dy)
@@ -223,7 +200,6 @@ class _PiePainter extends CustomPainter {
       start += sweep;
     }
 
-    // İç delik — donut görünümü için.
     final holePaint = Paint()..color = ringColor;
     canvas.drawCircle(center, innerR, holePaint);
   }

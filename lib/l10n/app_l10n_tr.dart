@@ -1,16 +1,14 @@
 import 'app_l10n.dart';
 
-/// Türkçe çeviriler.
 class AppL10nTr extends AppL10n {
   const AppL10nTr();
 
-  // --- COMMON ---
   @override
-  String get appName => 'Bütçe Takipçisi';
+  String get appName => 'Balancio';
   @override
   String get tabDashboard => 'Özet';
   @override
-  String get tabExpenses => 'Harcamalar';
+  String get tabExpenses => 'Gider';
   @override
   String get tabBudget => 'Bütçe';
   @override
@@ -60,7 +58,6 @@ class AppL10nTr extends AppL10n {
   @override
   String get preview => 'Önizleme';
 
-  // --- AUTH ---
   @override
   String get loginTitle => 'Giriş Yap';
   @override
@@ -123,7 +120,6 @@ class AppL10nTr extends AppL10n {
   @override
   String get errSessionInactive => 'Oturum açık değil';
 
-  // --- VALIDATORS ---
   @override
   String get vRequired => 'Bu alan boş bırakılamaz';
   @override
@@ -148,7 +144,6 @@ class AppL10nTr extends AppL10n {
   @override
   String get vAnswerMin => 'En az 2 karakter girin';
 
-  // --- SETTINGS ---
   @override
   String get settingsTitle => 'Ayarlar';
   @override
@@ -176,7 +171,7 @@ class AppL10nTr extends AppL10n {
   @override
   String get categoriesAction => 'Kategoriler';
   @override
-  String get recurringAction => 'Tekrarlayan Harcamalar';
+  String get recurringAction => 'Tekrarlayan İşlemler';
   @override
   String get deleteAllExpensesAction => 'Tüm harcamalarımı sil';
   @override
@@ -190,7 +185,6 @@ class AppL10nTr extends AppL10n {
   @override
   String snackExpensesDeleted(int count) => '$count harcama silindi';
 
-  // --- ONBOARDING ---
   @override
   String get onboardingTitle1 => 'Harcamalarını takip et';
   @override
@@ -207,7 +201,6 @@ class AppL10nTr extends AppL10n {
   String get onboardingSubtitle3 =>
       'Pasta grafik, haftalık bar ve yıllık özet ile finansal durumunu tek bakışta gör.';
 
-  // --- UNSAVED CHANGES DIALOG ---
   @override
   String get unsavedTitle => 'Değişiklikler kaydedilmedi';
   @override
@@ -218,7 +211,6 @@ class AppL10nTr extends AppL10n {
   @override
   String get unsavedStay => 'Vazgeç';
 
-  // --- EXPENSES ---
   @override
   String get expenseDetailTitle => 'Harcama Detayı';
   @override
@@ -260,6 +252,8 @@ class AppL10nTr extends AppL10n {
   @override
   String get filterThisMonth => 'Bu Ay';
   @override
+  String get filterThisYear => 'Bu Yıl';
+  @override
   String get filterCustom => 'Özel';
   @override
   String get emptyExpensesTitle => 'Henüz harcama yok';
@@ -296,31 +290,40 @@ class AppL10nTr extends AppL10n {
   @override
   String get clearSelectionTooltip => 'Seçimi iptal et';
 
-  // --- DASHBOARD ---
   @override
   String greeting(String username) => 'Merhaba, $username';
   @override
-  String get greetingSubtitle => 'Bugünkü harcamalarına göz at.';
+  String get greetingSubtitle => 'İşte finansal durumun bir bakışta.';
   @override
   String get monthTotalLabel => 'Bu ay toplam';
   @override
-  String comparedToLastMonthIncrease(int pct) =>
-      'Geçen aya göre %$pct arttı';
+  String comparedToLastMonthIncrease(int pct) => 'Geçen aya göre %$pct arttı';
   @override
-  String comparedToLastMonthDecrease(int pct) =>
-      'Geçen aya göre %$pct azaldı';
+  String comparedToLastMonthDecrease(int pct) => 'Geçen aya göre %$pct azaldı';
   @override
   String get sameAsLastMonth => 'Geçen ayla aynı';
   @override
   String get noDataLastMonth => 'Geçen ay için veri yok.';
   @override
-  String get weeklyChartTitle => 'Son 7 gün';
+  String get weeklyChartTitle => 'Son 7 gün harcamaları';
   @override
   String get yearlyChartTitle => 'Yıllık özet';
   @override
   String yearlyTotal(String moneyText) => 'Yıl toplamı: $moneyText';
   @override
   String get categoryBreakdownTitle => 'Kategori dağılımı';
+  @override
+  String get expenseDistribution => 'Giderler';
+  @override
+  String get incomeDistribution => 'Gelirler';
+  @override
+  String get noIncomeThisPeriod => 'Bu dönemde gelir yok.';
+  @override
+  String get sixMonthSummaryTitle => 'Son 6 ay özeti';
+  @override
+  String get netWord => 'Net';
+  @override
+  String get showMore => 'Daha fazla göster';
   @override
   String get recentExpensesTitle => 'Son harcamalar';
   @override
@@ -330,7 +333,6 @@ class AppL10nTr extends AppL10n {
   @override
   String get noExpensesThisMonth => 'Bu ay harcama yok.';
 
-  // --- BUDGETS ---
   @override
   String get newBudgetTitle => 'Yeni Bütçe';
   @override
@@ -366,7 +368,6 @@ class AppL10nTr extends AppL10n {
   @override
   String get deleteTooltip => 'Sil';
 
-  // --- PROFILE ---
   @override
   String get profileTitle => 'Profil';
   @override
@@ -386,7 +387,6 @@ class AppL10nTr extends AppL10n {
   @override
   String get passwordConfirmLabel => 'Parola onayı';
 
-  // --- CATEGORIES ---
   @override
   String get categoriesTitle => 'Kategoriler';
   @override
@@ -418,9 +418,8 @@ class AppL10nTr extends AppL10n {
   @override
   String get pickCategoryTitle => 'Kategori seç';
 
-  // --- RECURRING ---
   @override
-  String get recurringTitle => 'Tekrarlayan Harcamalar';
+  String get recurringTitle => 'Tekrarlayan İşlemler';
   @override
   String get newRecurringTitle => 'Yeni Tekrarlayan';
   @override
@@ -451,7 +450,112 @@ class AppL10nTr extends AppL10n {
   String get emptyRecurringSubtitle =>
       'Kira, internet gibi her ay aynı tutarda olan harcamalarınızı buraya ekleyin.';
 
-  // --- QUICK ADD ---
   @override
   String get quickAddSheetTitle => 'Hızlı Harcama';
+
+  @override
+  String get tabIncome => 'Gelir';
+  @override
+  String get newIncomeTitle => 'Yeni gelir';
+  @override
+  String get editIncomeTitle => 'Geliri düzenle';
+  @override
+  String get incomeSourceLabel => 'Kaynak';
+  @override
+  String get sortSourceAsc => 'Kaynağa göre';
+  @override
+  String get emptyIncomesTitle => 'Henüz gelir yok';
+  @override
+  String get emptyIncomesSubtitle =>
+      'Maaş, ek gelir gibi kazançlarınızı ekleyerek net bakiyenizi görün.';
+  @override
+  String get emptyIncomesFilterSubtitle => 'Bu filtreye uyan gelir bulunamadı.';
+  @override
+  String get deleteIncomeTitle => 'Geliri sil';
+  @override
+  String get deleteIncomeMessage =>
+      'Bu gelir kaydını silmek istediğinize emin misiniz?';
+  @override
+  String get snackIncomeDeleted => 'Gelir silindi';
+  @override
+  String get deleteAllIncomesAction => 'Tüm gelirleri sil';
+  @override
+  String get deleteAllIncomesTitle => 'Tüm gelirleri sil';
+  @override
+  String get deleteAllIncomesMessage =>
+      'Tüm gelir kayıtlarınız kalıcı olarak silinecek. Bu işlem geri alınamaz.';
+  @override
+  String snackIncomesDeleted(int count) => '$count gelir silindi';
+
+  @override
+  String get netBalanceTitle => 'Net Bakiye';
+  @override
+  String get incomeWord => 'Gelir';
+  @override
+  String get expenseWord => 'Gider';
+  @override
+  String get noIncomeThisMonth => 'Bu ay gelir kaydı yok';
+
+  @override
+  String get sectionCurrency => 'Para Birimi';
+
+  @override
+  String get editNameAction => 'İsmi düzenle';
+  @override
+  String get editNameTitle => 'İsmini düzenle';
+  @override
+  String get fullNameLabel => 'Ad Soyad';
+  @override
+  String get fullNameNotSet => 'Belirtilmedi';
+  @override
+  String get snackProfileUpdated => 'Profil güncellendi';
+  @override
+  String get changeUsernameAction => 'Kullanıcı adını değiştir';
+  @override
+  String get changeUsernameTitle => 'Kullanıcı adını değiştir';
+  @override
+  String get newUsernameLabel => 'Yeni kullanıcı adı';
+  @override
+  String get snackUsernameUpdated => 'Kullanıcı adı güncellendi';
+  @override
+  String get changePhotoTitle => 'Profil fotoğrafı';
+  @override
+  String get photoFromCamera => 'Fotoğraf çek';
+  @override
+  String get photoFromGallery => 'Galeriden seç';
+  @override
+  String get removePhoto => 'Fotoğrafı kaldır';
+
+  @override
+  String get incomeDetailTitle => 'Gelir Detayı';
+  @override
+  String get incomeNotFound => 'Bu gelir bulunamadı veya silinmiş.';
+
+  @override
+  String get repeatMonthly => 'Her ay tekrarla';
+  @override
+  String repeatMonthlyHint(int day) => 'Her ayın $day. günü otomatik eklenir';
+  @override
+  String get repeatMonthlyOffHint => 'Yalnızca bu tarihe tek seferlik eklenir';
+
+  @override
+  String get sectionFixedIncomeSources => 'Sabit gelir kaynakları';
+  @override
+  String get sectionCustomIncomeSources => 'Özel gelir kaynakları';
+  @override
+  String get emptyCustomIncomeSourcesTitle => 'Henüz özel gelir kaynağı yok';
+  @override
+  String get emptyCustomIncomeSourcesSubtitle =>
+      'Kendi gelir kaynaklarınızı + ile ekleyebilirsiniz.';
+
+  @override
+  String get statsTitle => 'İstatistikler (son 6 ay)';
+  @override
+  String get avgIncomeLabel => 'Ort. gelir';
+  @override
+  String get avgExpenseLabel => 'Ort. gider';
+  @override
+  String get savingsRateLabel => 'Tasarruf oranı';
+  @override
+  String get netTrendTitle => 'Net trend';
 }

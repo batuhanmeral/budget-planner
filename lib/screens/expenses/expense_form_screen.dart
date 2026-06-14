@@ -2,28 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/app_constants.dart';
+import '../../app/currency_controller.dart';
 import '../../app/locale_controller.dart';
 import '../../models/expense.dart';
+import '../../models/recurring_expense.dart';
 import '../../services/auth_service.dart';
 import '../../services/category_service.dart';
 import '../../services/expense_repository.dart';
+import '../../services/recurring_expense_repository.dart';
+import '../../services/recurring_expense_runner.dart';
 import '../../utils/date_utils.dart' as du;
 import '../../utils/formatters.dart';
 import '../../utils/money_utils.dart';
 import '../../utils/validators.dart';
 import '../../widgets/unsaved_changes_dialog.dart';
 
-/// Harcama ekleme/düzenleme ortak formu.
-///
-/// [initial] null → ekleme modu. Dolu verilirse → düzenleme modu;
-/// ID korunur, sadece alanlar update edilir.
-///
-/// Alanlar: tutar (TR virgül destekli, sayısal klavye), kategori
-/// (dropdown), tarih (showDatePicker → stripTime), açıklama (max 200).
-///
-/// "Dirty tracking" için form alanları başlangıçta bir signature
-/// stringi ile karşılaştırılır; değişiklik varsa [PopScope] geri tuşunu
-/// engeller ve onay diyalogu gösterir.
 class ExpenseFormScreen extends StatefulWidget {
   final Expense? initial;
 
@@ -40,6 +33,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
 
   late AppCategory _category;
   late DateTime _date;
+  bool _recurring = false;
   bool _busy = false;
   bool _dirty = false;
   late final String _initialSignature;
@@ -71,7 +65,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   }
 
   String _signature() =>
-      '${_amountCtrl.text}|${_noteCtrl.text}|${_category.name}|${du.formatDateOnly(_date)}';
+      '${_amountCtrl.text}|${_noteCtrl.text}|${_category.name}|${du.formatDateOnly(_date)}|$_recurring';
 
   void _markDirty() {
     final next = _signature() != _initialSignature;
@@ -122,6 +116,22 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
           note: note,
         );
         await ExpenseRepository.instance.insert(expense);
+
+        if (_recurring) {
+          final ym = du.monthPrefix(_date.year, _date.month);
+          await RecurringExpenseRepository.instance.insert(
+            RecurringExpense(
+              userId: user.id!,
+              amount: amount,
+              category: _category.name,
+              note: note,
+              dayOfMonth: _date.day,
+              lastInsertedYearMonth: ym,
+            ),
+          );
+          // Geçmiş tarihli şablonsa aradaki ayları bugüne kadar geri doldur.
+          await RecurringExpenseRunner.runForUser(user.id!);
+        }
       }
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -169,7 +179,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                     decoration: InputDecoration(
                       labelText: l.amountLabel,
                       prefixIcon: Icon(Icons.payments_outlined),
-                      suffixText: AppStrings.currencySymbol,
+                      suffixText: CurrencyController.instance.symbol,
                     ),
                     validator: Validators.moneyAmount,
                   ),
@@ -206,7 +216,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                     onTap: _pickDate,
                     child: InputDecorator(
                       decoration: InputDecoration(
-                      labelText: l.dateLabel,
+                        labelText: l.dateLabel,
                         prefixIcon: Icon(Icons.calendar_today_outlined),
                       ),
                       child: Text(Formatters.dateLong(_date)),
@@ -223,6 +233,23 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
                     maxLength: 200,
                     validator: (v) => Validators.maxLength(v, 200),
                   ),
+                  if (!_isEdit)
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: const Icon(Icons.repeat),
+                      title: Text(l.repeatMonthly),
+                      subtitle: Text(
+                        _recurring
+                            ? l.repeatMonthlyHint(_date.day)
+                            : l.repeatMonthlyOffHint,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      value: _recurring,
+                      onChanged: (v) => setState(() {
+                        _recurring = v;
+                        _markDirty();
+                      }),
+                    ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _busy ? null : _submit,

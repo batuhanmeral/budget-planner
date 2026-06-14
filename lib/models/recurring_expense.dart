@@ -1,13 +1,5 @@
 import '../utils/date_utils.dart';
 
-/// Her ay belirli bir günde otomatik üretilen harcama şablonu.
-///
-/// Splash/Home açılışında [last_inserted_year_month] kontrol edilir;
-/// içinde bulunulan ay için hâlâ insert yapılmadıysa ve gün geldiyse
-/// gerçek bir [Expense] yaratılır.
-///
-/// 30/31 olmayan aylarda ([dayOfMonth] = 31, Şubat ayı vs.) son güne
-/// kaydırılır — RecurringExpenseRunner sorumluluğunda.
 class RecurringExpense {
   final int? id;
   final int userId;
@@ -15,7 +7,7 @@ class RecurringExpense {
   final String category;
   final String? note;
   final int dayOfMonth;
-  final String? lastInsertedYearMonth; // 'YYYY-MM'
+  final String? lastInsertedYearMonth;
   final bool active;
   final DateTime? createdAt;
 

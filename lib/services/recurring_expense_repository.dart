@@ -1,11 +1,6 @@
 import '../models/recurring_expense.dart';
 import 'database_service.dart';
 
-/// `recurring_expenses` tablosu için CRUD repository.
-///
-/// Tekrarlayan harcamaların gerçek [Expense]'lara dönüştürülmesi
-/// [RecurringExpenseRunner] servisinde olur; bu repo sadece şablonları
-/// yönetir.
 class RecurringExpenseRepository {
   RecurringExpenseRepository._();
   static final instance = RecurringExpenseRepository._();
@@ -38,7 +33,6 @@ class RecurringExpenseRepository {
     );
   }
 
-  /// Kullanıcının tüm tekrarlayanlarını döner — pasif olanlar dahil.
   Future<List<RecurringExpense>> getAllForUser(int userId) async {
     final db = await DatabaseService.instance.database;
     final rows = await db.query(
@@ -50,7 +44,6 @@ class RecurringExpenseRepository {
     return rows.map(RecurringExpense.fromMap).toList();
   }
 
-  /// Aktif olan tekrarlayanlar — splash'te çalıştırılacak şablonlar.
   Future<List<RecurringExpense>> getActiveForUser(int userId) async {
     final db = await DatabaseService.instance.database;
     final rows = await db.query(
@@ -61,7 +54,6 @@ class RecurringExpenseRepository {
     return rows.map(RecurringExpense.fromMap).toList();
   }
 
-  /// Bir tekrarlayanın "bu ay için insert edildi" işaretini günceller.
   Future<int> markInsertedFor({
     required int id,
     required String yearMonth,

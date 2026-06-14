@@ -3,16 +3,9 @@ import '../utils/date_utils.dart';
 import '../utils/money_utils.dart';
 import 'database_service.dart';
 
-/// Harcama listesinin sıralama seçenekleri.
-///
-/// UI'daki sıralama menüsünden geliyor. Enum kullanılarak SQL injection
-/// önleniyor — kullanıcının yazdığı bir string ORDER BY'a girmiyor.
 enum ExpenseSort { dateDesc, dateAsc, amountDesc, amountAsc, category }
 
 extension on ExpenseSort {
-  /// Her enum değerinin karşılığı olan SQL ORDER BY ifadesi.
-  /// `id DESC` ikincil anahtar: aynı tarihte birden fazla harcama varsa
-  /// yeni eklenen üstte görünür.
   String get sql {
     switch (this) {
       case ExpenseSort.dateDesc:
@@ -29,44 +22,28 @@ extension on ExpenseSort {
   }
 }
 
-/// Bir gün için toplam harcama. Dashboard'daki haftalık bar grafiği bu
-/// listeyi tüketir.
 class DailyTotal {
   final DateTime date;
   final double total;
   const DailyTotal(this.date, this.total);
 }
 
-/// Bir ay için toplam harcama. Yıllık bar grafiğinde her sütun bir
-/// [MonthTotal]'dir.
 class MonthTotal {
-  final int month; // 1-12
+  final int month;
   final double total;
   const MonthTotal({required this.month, required this.total});
 }
 
-/// `expenses` tablosu için CRUD + sorgu metodları.
-///
-/// **Tüm metodlar `userId` parametresi alır** ve sorgularına
-/// `WHERE user_id = ?` ekler. Bu, veri izolasyon kuralının taşıyıcısıdır;
-/// bir kullanıcı asla başka kullanıcının verisini göremez/değiştiremez.
 class ExpenseRepository {
   ExpenseRepository._();
   static final instance = ExpenseRepository._();
 
-  /// Yeni harcama ekler. `created_at` UTC olarak set edilir, ID DB'den
-  /// AUTOINCREMENT olarak gelir.
   Future<int> insert(Expense expense) async {
     final db = await DatabaseService.instance.database;
     final data = expense.toMap()..['created_at'] = nowUtcIso();
     return db.insert('expenses', data);
   }
 
-  /// Mevcut harcamayı günceller. `id == null` ise programcı hatası
-  /// (ekleme yerine güncelleme çağrılmış) — ArgumentError.
-  ///
-  /// WHERE koşulu hem `id` hem `user_id`'yi içerir: başka kullanıcının
-  /// kaydı yanlışlıkla güncellenmez.
   Future<int> update(Expense expense) async {
     if (expense.id == null) {
       throw ArgumentError('update için id zorunlu');
@@ -81,7 +58,6 @@ class ExpenseRepository {
     );
   }
 
-  /// Tek harcama silme. `user_id` koşulu sahiplik güvencesidir.
   Future<int> delete({required int id, required int userId}) async {
     final db = await DatabaseService.instance.database;
     return db.delete(
@@ -91,20 +67,12 @@ class ExpenseRepository {
     );
   }
 
-  /// "Tüm harcamalarımı sil" akışı için — yalnızca aktif kullanıcının
-  /// kayıtları silinir, bütçeleri korunur.
   Future<int> deleteAllForUser(int userId) async {
     final db = await DatabaseService.instance.database;
     return db.delete('expenses', where: 'user_id = ?', whereArgs: [userId]);
   }
 
-  /// Birden fazla harcamayı tek SQL'de siler — toplu seçim akışı için.
-  /// `IN (?, ?, ...)` placeholder'ı dinamik üretilir; tüm değerler
-  /// parametre olarak geçer (SQL injection güvenli).
-  Future<int> deleteMany({
-    required List<int> ids,
-    required int userId,
-  }) async {
+  Future<int> deleteMany({required List<int> ids, required int userId}) async {
     if (ids.isEmpty) return 0;
     final db = await DatabaseService.instance.database;
     final placeholders = List.filled(ids.length, '?').join(',');
@@ -115,7 +83,6 @@ class ExpenseRepository {
     );
   }
 
-  /// Seçili harcamaların kategorisini topluca değiştirir.
   Future<int> updateCategoryMany({
     required List<int> ids,
     required int userId,
@@ -132,7 +99,6 @@ class ExpenseRepository {
     );
   }
 
-  /// Tek bir harcamayı detay ekranı için yükler.
   Future<Expense?> getById({required int id, required int userId}) async {
     final db = await DatabaseService.instance.database;
     final rows = await db.query(
@@ -145,7 +111,6 @@ class ExpenseRepository {
     return Expense.fromMap(rows.first);
   }
 
-  /// Kullanıcının tüm harcamaları — yeni tarihler üstte.
   Future<List<Expense>> getAllForUser(int userId) async {
     final db = await DatabaseService.instance.database;
     final rows = await db.query(
@@ -157,8 +122,6 @@ class ExpenseRepository {
     return rows.map(Expense.fromMap).toList();
   }
 
-  /// İki tarih arasındaki harcamalar (inclusive). Dashboard ve filtre
-  /// için kullanılır.
   Future<List<Expense>> getByDateRange({
     required int userId,
     required DateTime from,
@@ -174,7 +137,6 @@ class ExpenseRepository {
     return rows.map(Expense.fromMap).toList();
   }
 
-  /// Tek bir kategorideki harcamalar.
   Future<List<Expense>> getByCategory({
     required int userId,
     required String category,
@@ -189,12 +151,6 @@ class ExpenseRepository {
     return rows.map(Expense.fromMap).toList();
   }
 
-  /// Belirtilen ayın toplam harcaması. Dashboard'daki "Bu ay toplam"
-  /// ve aylık karşılaştırma için kullanılır.
-  ///
-  /// SQL'de `LIKE '2026-05%'` ile filtreliyoruz; `date` formatı
-  /// `YYYY-MM-DD` olduğu için bu prefix güvenli ve hızlı.
-  /// `COALESCE` boş sonuçta 0 döner.
   Future<double> getMonthlyTotal({
     required int userId,
     required int year,
@@ -211,9 +167,6 @@ class ExpenseRepository {
     return roundMoney(total);
   }
 
-  /// Kategori bazında aylık toplam (dashboard dağılım listesi ve bütçe
-  /// doluluk hesabı için). Sadece harcama yapılmış kategoriler dönüş
-  /// haritasında bulunur.
   Future<Map<String, double>> getMonthlyTotalByCategory({
     required int userId,
     required int year,
@@ -233,13 +186,41 @@ class ExpenseRepository {
     };
   }
 
-  /// Son N günün günlük toplamları. Haftalık bar grafiği için.
-  ///
-  /// DB harcama olmayan günleri döndürmez; bu yüzden sonra 0'larla
-  /// doldurulur — grafik her gün için bir bar göstermek zorunda.
-  /// Kullanıcının en sık kullandığı kategorilerin adları — en sıktan
-  /// az sığa doğru sıralı. Dashboard'daki "Hızlı Ekle" satırı bunu
-  /// tüketir. Hiç harcama yoksa boş liste döner.
+  Future<Map<String, double>> getRangeTotalByCategory({
+    required int userId,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    final db = await DatabaseService.instance.database;
+    final rows = await db.rawQuery(
+      'SELECT category, SUM(amount) AS total FROM expenses '
+      'WHERE user_id = ? AND date BETWEEN ? AND ? '
+      'GROUP BY category',
+      [userId, formatDateOnly(from), formatDateOnly(to)],
+    );
+    return {
+      for (final r in rows)
+        r['category'] as String: roundMoney((r['total'] as num).toDouble()),
+    };
+  }
+
+  Future<Map<String, double>> getYearTotalByCategory({
+    required int userId,
+    required int year,
+  }) async {
+    final db = await DatabaseService.instance.database;
+    final rows = await db.rawQuery(
+      'SELECT category, SUM(amount) AS total FROM expenses '
+      'WHERE user_id = ? AND date LIKE ? '
+      'GROUP BY category',
+      [userId, '$year-%'],
+    );
+    return {
+      for (final r in rows)
+        r['category'] as String: roundMoney((r['total'] as num).toDouble()),
+    };
+  }
+
   Future<List<String>> getMostUsedCategoryNames({
     required int userId,
     int limit = 4,
@@ -256,11 +237,6 @@ class ExpenseRepository {
     return rows.map((r) => r['category'] as String).toList();
   }
 
-  /// Belirli bir yılın 12 ayı için toplam harcama listesi (Ocak..Aralık).
-  ///
-  /// SQL `substr(date, 6, 2)` ile ay parçası çekilir; `date` formatı
-  /// `YYYY-MM-DD` olduğu için bu güvenli. Harcama olmayan aylar için
-  /// 0 ile doldurulur — grafik her ayı göstersin diye.
   Future<List<MonthTotal>> getYearlyTotalsByMonth({
     required int userId,
     required int year,
@@ -274,9 +250,7 @@ class ExpenseRepository {
     );
     final byMonth = <int, double>{
       for (final r in rows)
-        int.parse(r['m'] as String): roundMoney(
-          (r['total'] as num).toDouble(),
-        ),
+        int.parse(r['m'] as String): roundMoney((r['total'] as num).toDouble()),
     };
     return List.generate(
       12,
@@ -297,8 +271,6 @@ class ExpenseRepository {
       'GROUP BY date',
       [userId, formatDateOnly(from), formatDateOnly(today)],
     );
-    // DB sonucu önce map'e alıp, sonra tüm günleri (boş olanlar dahil)
-    // sırayla üret.
     final byDate = <String, double>{
       for (final r in rows)
         r['date'] as String: roundMoney((r['total'] as num).toDouble()),
@@ -312,12 +284,6 @@ class ExpenseRepository {
     return result;
   }
 
-  /// Açıklamada metin arama (case-insensitive LIKE).
-  ///
-  /// LIKE pattern'ında `%` ve `_` özel karakterleri vardır; kullanıcı
-  /// notuna "%50 indirim" gibi bir şey yazmışsa olduğu gibi aranmalı.
-  /// Bu yüzden bu karakterler `\` ile escape edilir ve `ESCAPE '\'`
-  /// clause kullanılır.
   Future<List<Expense>> search({
     required int userId,
     required String query,
@@ -338,11 +304,6 @@ class ExpenseRepository {
     return rows.map(Expense.fromMap).toList();
   }
 
-  /// Liste ekranı için tek noktadan filtre + sıralama.
-  ///
-  /// Tüm filtre alanları opsiyoneldir — verilenler WHERE'e eklenir.
-  /// ORDER BY [ExpenseSort] enum'ından geldiği için SQL injection
-  /// imkansız.
   Future<List<Expense>> getFilteredAndSorted({
     required int userId,
     String? category,
@@ -368,7 +329,6 @@ class ExpenseRepository {
       args.add(formatDateOnly(to));
     }
     if (noteQuery != null && noteQuery.trim().isNotEmpty) {
-      // LIKE özel karakterleri escape — search() ile aynı strateji.
       final escaped = noteQuery
           .replaceAll(r'\', r'\\')
           .replaceAll('%', r'\%')

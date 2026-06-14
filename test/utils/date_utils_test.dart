@@ -1,4 +1,4 @@
-import 'package:budget_planner/utils/date_utils.dart';
+import 'package:balancio/utils/date_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -26,9 +26,7 @@ void main() {
   });
 
   test('startOfWeek is Monday', () {
-    // 2026-05-25 is a Monday
     expect(startOfWeek(DateTime(2026, 5, 25)).weekday, DateTime.monday);
-    // 2026-05-31 is a Sunday — same week
     expect(startOfWeek(DateTime(2026, 5, 31)), DateTime(2026, 5, 25));
   });
 

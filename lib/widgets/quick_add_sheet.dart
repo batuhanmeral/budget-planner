@@ -11,14 +11,6 @@ import '../utils/money_utils.dart';
 import '../utils/validators.dart';
 import 'category_chip.dart';
 
-/// Tek bir kategoriye bugünün tarihiyle hızlı harcama eklemek için
-/// bottom sheet.
-///
-/// Kategori önceden chip ile seçilmiş geldiği için form sadece tutar
-/// ve opsiyonel not içerir. Tarih = bugün. Klavye otomatik açılır.
-///
-/// Başarılı kayıt sonrası `true` ile pop olur — çağıran dashboard'u
-/// reload edebilir.
 Future<bool> showQuickAddSheet(
   BuildContext context, {
   required AppCategory category,
@@ -27,10 +19,7 @@ Future<bool> showQuickAddSheet(
     context: context,
     isScrollControlled: true,
     builder: (ctx) => Padding(
-      // Klavye açıkken sheet üst kısmı görünür kalsın.
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(ctx).viewInsets.bottom,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
       child: _QuickAddSheet(category: category),
     ),
   );
@@ -122,10 +111,7 @@ class _QuickAddSheetState extends State<_QuickAddSheet> {
                 children: [
                   CategoryChip(category: widget.category),
                   const SizedBox(width: 8),
-                  Text(
-                    l.today,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                  Text(l.today, style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
               const SizedBox(height: 16),

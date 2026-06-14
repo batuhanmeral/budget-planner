@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_routes.dart';
+import '../../app/currency.dart';
+import '../../app/currency_controller.dart';
 import '../../app/locale_controller.dart';
 import '../../app/theme_controller.dart';
 import '../../services/auth_service.dart';
 import '../../services/expense_repository.dart';
+import '../../services/income_repository.dart';
 import '../../widgets/confirm_dialog.dart';
 import '../recurring/recurring_list_screen.dart';
 import 'categories_screen.dart';
 import 'profile_screen.dart';
 
-/// Ayarlar ekranı.
-///
-/// Bölümler: Profil, Kategoriler, Tekrarlayan; Görünüm (tema), Dil
-/// (TR/EN), Veri (tüm harcamaları sil), Hesap (çıkış), Hakkında.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -48,6 +47,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _deleteAllIncomes() async {
+    final l = context.l10n;
+    final user = AuthService.instance.currentUser;
+    if (user == null) return;
+    final ok = await showConfirmDialog(
+      context,
+      title: l.deleteAllIncomesTitle,
+      message: l.deleteAllIncomesMessage,
+      confirmLabel: l.delete,
+      cancelLabel: l.cancel,
+    );
+    if (!ok || !mounted) return;
+    try {
+      final count = await IncomeRepository.instance.deleteAllForUser(user.id!);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.snackIncomesDeleted(count))));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.notDeleted)));
+    }
+  }
+
   Future<void> _logout() async {
     await AuthService.instance.logout();
     if (!mounted) return;
@@ -66,10 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Icons.account_balance_wallet,
         color: Theme.of(context).colorScheme.primary,
       ),
-      children: [
-        const SizedBox(height: 8),
-        Text(l.aboutBody),
-      ],
+      children: [const SizedBox(height: 8), Text(l.aboutBody)],
     );
   }
 
@@ -84,18 +106,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.person_outline),
             title: Text(l.profileAction),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ProfileScreen()),
-            ),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const ProfileScreen())),
           ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.category_outlined),
             title: Text(l.categoriesAction),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const CategoriesScreen()),
-            ),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
           ),
           const Divider(height: 1),
           ListTile(
@@ -163,6 +185,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           const Divider(height: 1),
+          _SectionHeader(l.sectionCurrency),
+          AnimatedBuilder(
+            animation: CurrencyController.instance,
+            builder: (_, _) {
+              return RadioGroup<String>(
+                groupValue: CurrencyController.instance.currency.code,
+                onChanged: (code) {
+                  if (code != null) {
+                    CurrencyController.instance.setCurrency(
+                      Currencies.byCode(code),
+                    );
+                  }
+                },
+                child: Column(
+                  children: [
+                    for (final c in Currencies.all)
+                      RadioListTile<String>(
+                        value: c.code,
+                        title: Text('${c.name} (${c.symbol})'),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const Divider(height: 1),
           _SectionHeader(l.sectionData),
           ListTile(
             leading: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
@@ -171,6 +219,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: const TextStyle(color: Colors.red),
             ),
             onTap: _deleteAllExpenses,
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
+            title: Text(
+              l.deleteAllIncomesAction,
+              style: const TextStyle(color: Colors.red),
+            ),
+            onTap: _deleteAllIncomes,
           ),
           const Divider(height: 1),
           _SectionHeader(l.sectionAccount),

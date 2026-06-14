@@ -5,15 +5,6 @@ import '../services/category_service.dart';
 import '../utils/formatters.dart';
 import 'category_chip.dart';
 
-/// Listede tek bir harcamayı gösteren kart.
-///
-/// Sol: kategori renkli daire ikon (seçim modunda checkbox). Sağ üst:
-/// tutar (kalın). Altta: kategori chip + tarih + (varsa) açıklama
-/// (max 2 satır).
-///
-/// Toplu seçim akışı için:
-/// - [selected] true ise vurgulu görsel (border + arka plan).
-/// - [onLongPress] genelde seçim modunu açmak için kullanılır.
 class ExpenseTile extends StatelessWidget {
   final Expense expense;
   final VoidCallback? onTap;
@@ -33,10 +24,7 @@ class ExpenseTile extends StatelessWidget {
     final cat = CategoryService.instance.byName(expense.category);
     final primary = Theme.of(context).colorScheme.primary;
     return Card(
-      // Seçili olduğunda primary tonunda hafif overlay ile vurgulu.
-      color: selected
-          ? primary.withValues(alpha: 0.12)
-          : null,
+      color: selected ? primary.withValues(alpha: 0.12) : null,
       shape: selected
           ? RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -88,7 +76,6 @@ class ExpenseTile extends StatelessWidget {
             ],
           ],
         ),
-        // Seçim modunda chevron yerine boşluk — checkbox baştadır.
         trailing: selected ? null : const Icon(Icons.chevron_right),
       ),
     );

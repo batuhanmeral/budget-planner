@@ -2,13 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../app/app_constants.dart';
 
-/// Bir kategoriyi renkli ve ikonlu küçük etiket olarak gösterir.
-///
-/// Liste satırlarında, detay başlıklarında ve dashboard'da kullanılır.
-/// [dense] true verilirse daha sıkışık (küçük ikon + küçük yazı) versiyon.
-///
-/// Arka plan kategorinin kendi renginin %15 alfa'sı — etiket göz
-/// yormadan vurgulanır.
 class CategoryChip extends StatelessWidget {
   final AppCategory category;
   final bool dense;

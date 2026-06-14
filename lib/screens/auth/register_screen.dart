@@ -7,16 +7,6 @@ import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
 import '../../widgets/unsaved_changes_dialog.dart';
 
-/// Kayıt ekranı.
-///
-/// Alanlar: kullanıcı adı, parola, parola tekrar, güvenlik sorusu
-/// (dropdown), cevap. Güvenlik sorusu parola sıfırlama için kritik.
-///
-/// Başarılı kayıt sonrası otomatik login yapılır ve Home'a yönlendirilir
-/// (back stack temizlenir — kullanıcı geri tuşuyla register'a dönemez).
-///
-/// [PopScope] ile kullanıcı bir şey yazdıysa geri tuşuna basınca onay
-/// diyalogu çıkar.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -26,6 +16,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _fullNameCtrl = TextEditingController();
   final _usernameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _password2Ctrl = TextEditingController();
@@ -40,6 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void initState() {
     super.initState();
     for (final c in [
+      _fullNameCtrl,
       _usernameCtrl,
       _passwordCtrl,
       _password2Ctrl,
@@ -51,6 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
+    _fullNameCtrl.dispose();
     _usernameCtrl.dispose();
     _passwordCtrl.dispose();
     _password2Ctrl.dispose();
@@ -59,6 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   bool get _isDirty =>
+      _fullNameCtrl.text.isNotEmpty ||
       _usernameCtrl.text.isNotEmpty ||
       _passwordCtrl.text.isNotEmpty ||
       _password2Ctrl.text.isNotEmpty ||
@@ -73,6 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: _passwordCtrl.text,
         securityQuestion: _question,
         securityAnswer: _answerCtrl.text,
+        fullName: _fullNameCtrl.text.trim(),
       );
       if (!mounted) return;
       Navigator.of(
@@ -115,9 +110,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TextFormField(
+                    controller: _fullNameCtrl,
+                    decoration: InputDecoration(
+                      labelText: l.fullNameLabel,
+                      prefixIcon: Icon(Icons.badge_outlined),
+                    ),
+                    textCapitalization: TextCapitalization.words,
+                    textInputAction: TextInputAction.next,
+                    validator: Validators.fullName,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
                     controller: _usernameCtrl,
                     decoration: InputDecoration(
-              labelText: l.usernameLabel,
+                      labelText: l.usernameLabel,
                       prefixIcon: Icon(Icons.person_outline),
                     ),
                     autocorrect: false,
@@ -183,7 +189,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _answerCtrl,
                     decoration: InputDecoration(
-              labelText: l.securityAnswerLabel,
+                      labelText: l.securityAnswerLabel,
                       prefixIcon: Icon(Icons.edit_outlined),
                     ),
                     textInputAction: TextInputAction.done,

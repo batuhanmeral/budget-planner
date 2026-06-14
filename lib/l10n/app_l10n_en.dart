@@ -1,16 +1,14 @@
 import 'app_l10n.dart';
 
-/// English translations.
 class AppL10nEn extends AppL10n {
   const AppL10nEn();
 
-  // --- COMMON ---
   @override
-  String get appName => 'Budget Planner';
+  String get appName => 'Balancio';
   @override
   String get tabDashboard => 'Overview';
   @override
-  String get tabExpenses => 'Expenses';
+  String get tabExpenses => 'Expense';
   @override
   String get tabBudget => 'Budget';
   @override
@@ -60,7 +58,6 @@ class AppL10nEn extends AppL10n {
   @override
   String get preview => 'Preview';
 
-  // --- AUTH ---
   @override
   String get loginTitle => 'Sign In';
   @override
@@ -86,8 +83,7 @@ class AppL10nEn extends AppL10n {
   @override
   String get forgotPasswordTitle => 'Forgot Password';
   @override
-  String get forgotPasswordIntro =>
-      'Enter your username to find your account.';
+  String get forgotPasswordIntro => 'Enter your username to find your account.';
   @override
   String get newPasswordLabel => 'New password';
   @override
@@ -123,7 +119,6 @@ class AppL10nEn extends AppL10n {
   @override
   String get errSessionInactive => 'No active session';
 
-  // --- VALIDATORS ---
   @override
   String get vRequired => 'This field cannot be empty';
   @override
@@ -148,7 +143,6 @@ class AppL10nEn extends AppL10n {
   @override
   String get vAnswerMin => 'Enter at least 2 characters';
 
-  // --- SETTINGS ---
   @override
   String get settingsTitle => 'Settings';
   @override
@@ -176,7 +170,7 @@ class AppL10nEn extends AppL10n {
   @override
   String get categoriesAction => 'Categories';
   @override
-  String get recurringAction => 'Recurring Expenses';
+  String get recurringAction => 'Recurring Transactions';
   @override
   String get deleteAllExpensesAction => 'Delete all my expenses';
   @override
@@ -190,7 +184,6 @@ class AppL10nEn extends AppL10n {
   @override
   String snackExpensesDeleted(int count) => '$count expense(s) deleted';
 
-  // --- ONBOARDING ---
   @override
   String get onboardingTitle1 => 'Track your expenses';
   @override
@@ -207,7 +200,6 @@ class AppL10nEn extends AppL10n {
   String get onboardingSubtitle3 =>
       'See your finances at a glance with a pie chart, weekly bars and yearly summary.';
 
-  // --- UNSAVED CHANGES DIALOG ---
   @override
   String get unsavedTitle => 'Changes not saved';
   @override
@@ -218,7 +210,6 @@ class AppL10nEn extends AppL10n {
   @override
   String get unsavedStay => 'Stay';
 
-  // --- EXPENSES ---
   @override
   String get expenseDetailTitle => 'Expense Detail';
   @override
@@ -260,14 +251,16 @@ class AppL10nEn extends AppL10n {
   @override
   String get filterThisMonth => 'This Month';
   @override
+  String get filterThisYear => 'This Year';
+  @override
   String get filterCustom => 'Custom';
   @override
   String get emptyExpensesTitle => 'No expenses yet';
   @override
-  String get emptyExpensesSubtitle => 'Add your first expense with the + button.';
+  String get emptyExpensesSubtitle =>
+      'Add your first expense with the + button.';
   @override
-  String get emptyExpensesFilterSubtitle =>
-      'Change the filters and try again.';
+  String get emptyExpensesFilterSubtitle => 'Change the filters and try again.';
   @override
   String get deleteExpenseTitle => 'Delete expense';
   @override
@@ -279,7 +272,8 @@ class AppL10nEn extends AppL10n {
   String deleteExpensesMessage(int count) =>
       'Are you sure you want to delete $count selected expenses?';
   @override
-  String get expenseNotFound => 'This expense was not found or has been deleted.';
+  String get expenseNotFound =>
+      'This expense was not found or has been deleted.';
   @override
   String get noExpensesThisDay => 'No expenses on this day';
   @override
@@ -296,11 +290,10 @@ class AppL10nEn extends AppL10n {
   @override
   String get clearSelectionTooltip => 'Clear selection';
 
-  // --- DASHBOARD ---
   @override
   String greeting(String username) => 'Hello, $username';
   @override
-  String get greetingSubtitle => 'Take a look at your spending today.';
+  String get greetingSubtitle => 'Here is your financial snapshot.';
   @override
   String get monthTotalLabel => 'This month';
   @override
@@ -312,13 +305,25 @@ class AppL10nEn extends AppL10n {
   @override
   String get noDataLastMonth => 'No data for last month.';
   @override
-  String get weeklyChartTitle => 'Last 7 days';
+  String get weeklyChartTitle => 'Last 7 days spending';
   @override
   String get yearlyChartTitle => 'Yearly summary';
   @override
   String yearlyTotal(String moneyText) => 'Year total: $moneyText';
   @override
   String get categoryBreakdownTitle => 'Category breakdown';
+  @override
+  String get expenseDistribution => 'Expenses';
+  @override
+  String get incomeDistribution => 'Income';
+  @override
+  String get noIncomeThisPeriod => 'No income for this period.';
+  @override
+  String get sixMonthSummaryTitle => 'Last 6 months summary';
+  @override
+  String get netWord => 'Net';
+  @override
+  String get showMore => 'Show more';
   @override
   String get recentExpensesTitle => 'Recent expenses';
   @override
@@ -328,7 +333,6 @@ class AppL10nEn extends AppL10n {
   @override
   String get noExpensesThisMonth => 'No expenses this month.';
 
-  // --- BUDGETS ---
   @override
   String get newBudgetTitle => 'New Budget';
   @override
@@ -363,7 +367,6 @@ class AppL10nEn extends AppL10n {
   @override
   String get deleteTooltip => 'Delete';
 
-  // --- PROFILE ---
   @override
   String get profileTitle => 'Profile';
   @override
@@ -383,7 +386,6 @@ class AppL10nEn extends AppL10n {
   @override
   String get passwordConfirmLabel => 'Password confirmation';
 
-  // --- CATEGORIES ---
   @override
   String get categoriesTitle => 'Categories';
   @override
@@ -415,9 +417,8 @@ class AppL10nEn extends AppL10n {
   @override
   String get pickCategoryTitle => 'Pick a category';
 
-  // --- RECURRING ---
   @override
-  String get recurringTitle => 'Recurring Expenses';
+  String get recurringTitle => 'Recurring Transactions';
   @override
   String get newRecurringTitle => 'New Recurring';
   @override
@@ -448,7 +449,113 @@ class AppL10nEn extends AppL10n {
   String get emptyRecurringSubtitle =>
       'Add monthly fixed expenses like rent and internet here.';
 
-  // --- QUICK ADD ---
   @override
   String get quickAddSheetTitle => 'Quick Expense';
+
+  @override
+  String get tabIncome => 'Income';
+  @override
+  String get newIncomeTitle => 'New income';
+  @override
+  String get editIncomeTitle => 'Edit income';
+  @override
+  String get incomeSourceLabel => 'Source';
+  @override
+  String get sortSourceAsc => 'By source';
+  @override
+  String get emptyIncomesTitle => 'No income yet';
+  @override
+  String get emptyIncomesSubtitle =>
+      'Add earnings like salary or side income to see your net balance.';
+  @override
+  String get emptyIncomesFilterSubtitle => 'No income matches this filter.';
+  @override
+  String get deleteIncomeTitle => 'Delete income';
+  @override
+  String get deleteIncomeMessage =>
+      'Are you sure you want to delete this income record?';
+  @override
+  String get snackIncomeDeleted => 'Income deleted';
+  @override
+  String get deleteAllIncomesAction => 'Delete all income';
+  @override
+  String get deleteAllIncomesTitle => 'Delete all income';
+  @override
+  String get deleteAllIncomesMessage =>
+      'All your income records will be permanently deleted. This cannot be undone.';
+  @override
+  String snackIncomesDeleted(int count) => '$count income records deleted';
+
+  @override
+  String get netBalanceTitle => 'Net Balance';
+  @override
+  String get incomeWord => 'Income';
+  @override
+  String get expenseWord => 'Expense';
+  @override
+  String get noIncomeThisMonth => 'No income this month';
+
+  @override
+  String get sectionCurrency => 'Currency';
+
+  @override
+  String get editNameAction => 'Edit name';
+  @override
+  String get editNameTitle => 'Edit your name';
+  @override
+  String get fullNameLabel => 'Full name';
+  @override
+  String get fullNameNotSet => 'Not set';
+  @override
+  String get snackProfileUpdated => 'Profile updated';
+  @override
+  String get changeUsernameAction => 'Change username';
+  @override
+  String get changeUsernameTitle => 'Change username';
+  @override
+  String get newUsernameLabel => 'New username';
+  @override
+  String get snackUsernameUpdated => 'Username updated';
+  @override
+  String get changePhotoTitle => 'Profile photo';
+  @override
+  String get photoFromCamera => 'Take a photo';
+  @override
+  String get photoFromGallery => 'Choose from gallery';
+  @override
+  String get removePhoto => 'Remove photo';
+
+  @override
+  String get incomeDetailTitle => 'Income Detail';
+  @override
+  String get incomeNotFound => 'This income was not found or has been deleted.';
+
+  @override
+  String get repeatMonthly => 'Repeat monthly';
+  @override
+  String repeatMonthlyHint(int day) =>
+      'Added automatically on day $day each month';
+  @override
+  String get repeatMonthlyOffHint => 'Added once on this date only';
+
+  @override
+  String get sectionFixedIncomeSources => 'Fixed income sources';
+  @override
+  String get sectionCustomIncomeSources => 'Custom income sources';
+  @override
+  String get emptyCustomIncomeSourcesTitle => 'No custom income sources yet';
+  @override
+  String get emptyCustomIncomeSourcesSubtitle =>
+      'Add your own income sources with +.';
+
+  @override
+  String get statsTitle => 'Statistics (last 6 months)';
+  @override
+  String get avgIncomeLabel => 'Avg income';
+  @override
+  String get avgExpenseLabel => 'Avg expense';
+  @override
+  String get savingsRateLabel => 'Savings rate';
+  @override
+  String get netTrendTitle => 'Net trend';
 }

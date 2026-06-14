@@ -16,19 +16,8 @@ import 'expense_calendar_view.dart';
 import 'expense_detail_screen.dart';
 import 'expense_form_screen.dart';
 
-/// Harcama görüntüleme modu — üstteki SegmentedButton'dan seçilir.
 enum _ViewMode { list, calendar }
 
-/// Harcamalar sekmesinin içeriği. HomeScreen'in IndexedStack'i içine
-/// yerleştirilir; kendi Scaffold'u yoktur.
-///
-/// İki görünüm: **Liste** (arama+filtre+sıralama+liste) ve **Takvim**
-/// (ay grid + gün bottom sheet). Üstteki [SegmentedButton] ile geçilir.
-/// Filtreler sadece liste görünümünde etkilidir; takvim kendi ay
-/// navigasyonunu yönetir.
-///
-/// State public ([ExpenseListScreenState]) çünkü HomeScreen FAB'ı
-/// GlobalKey üzerinden `openAdd()` ve `reload()` çağırıyor.
 class ExpenseListScreen extends StatefulWidget {
   const ExpenseListScreen({super.key});
 
@@ -46,8 +35,6 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
   _ViewMode _view = _ViewMode.list;
   late Future<List<Expense>> _future;
 
-  // Toplu seçim modu: bir veya daha fazla harcama seçilmişse aktif.
-  // Header normal filtreleri gizler, üstte seçim toolbar'ı gösterir.
   final Set<int> _selectedIds = <int>{};
   bool get _selectionMode => _selectedIds.isNotEmpty;
 
@@ -84,7 +71,6 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
     });
   }
 
-  /// Seçili harcamaları toplu siler — onaylı.
   Future<void> _bulkDelete() async {
     final user = AuthService.instance.currentUser;
     if (user == null) return;
@@ -101,20 +87,19 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
         userId: user.id!,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_l.snackExpensesDeleted(count))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_l.snackExpensesDeleted(count))));
       _selectedIds.clear();
       reload();
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_l.notDeleted)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_l.notDeleted)));
     }
   }
 
-  /// Seçili harcamaların kategorisini topluca değiştirir.
   Future<void> _bulkChangeCategory() async {
     final user = AuthService.instance.currentUser;
     if (user == null) return;
@@ -136,9 +121,9 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
       reload();
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_l.notUpdated)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_l.notUpdated)));
     }
   }
 
@@ -168,8 +153,6 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
 
     return Column(
       children: [
-        // Seçim modu üstte ayrı bir toolbar gösterir; aksi takdirde
-        // Liste/Takvim toggle görünür.
         if (_selectionMode)
           _SelectionToolbar(
             selectedCount: _selectedIds.length,
@@ -206,8 +189,6 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
     );
   }
 
-  /// Liste modunun gövdesi — filtreler + FutureBuilder.
-  /// Seçim modundayken filtre alanı gizlenir (uzun listede dağılmasın).
   Widget _buildListBody() {
     final l = context.l10n;
     return Column(
@@ -228,94 +209,94 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
                           reload();
                         },
                       ),
-                  ),
-                  const SizedBox(width: 8),
-                  PopupMenuButton<ExpenseSort>(
-                    tooltip: l.sortTooltip,
-                    icon: const Icon(Icons.sort),
-                    initialValue: _sort,
-                    onSelected: (v) {
-                      setState(() => _sort = v);
-                      reload();
-                    },
-                    itemBuilder: (_) => [
-                      PopupMenuItem(
-                        value: ExpenseSort.dateDesc,
-                        child: Text(l.sortDateDesc),
-                      ),
-                      PopupMenuItem(
-                        value: ExpenseSort.dateAsc,
-                        child: Text(l.sortDateAsc),
-                      ),
-                      PopupMenuItem(
-                        value: ExpenseSort.amountDesc,
-                        child: Text(l.sortAmountDesc),
-                      ),
-                      PopupMenuItem(
-                        value: ExpenseSort.amountAsc,
-                        child: Text(l.sortAmountAsc),
-                      ),
-                      PopupMenuItem(
-                        value: ExpenseSort.category,
-                        child: Text(l.sortCategoryAsc),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              DateRangeFilter(
-                value: _range ?? DateRangeValue.thisMonth(),
-                onChanged: (v) {
-                  setState(() => _range = v);
-                  reload();
-                },
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 40,
-                child: AnimatedBuilder(
-                  animation: CategoryService.instance,
-                  builder: (context, _) {
-                    return ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: ChoiceChip(
-                            label: Text(l.all),
-                            selected: _category == null,
-                            onSelected: (_) {
-                              setState(() => _category = null);
-                              reload();
-                            },
-                          ),
+                    ),
+                    const SizedBox(width: 8),
+                    PopupMenuButton<ExpenseSort>(
+                      tooltip: l.sortTooltip,
+                      icon: const Icon(Icons.sort),
+                      initialValue: _sort,
+                      onSelected: (v) {
+                        setState(() => _sort = v);
+                        reload();
+                      },
+                      itemBuilder: (_) => [
+                        PopupMenuItem(
+                          value: ExpenseSort.dateDesc,
+                          child: Text(l.sortDateDesc),
                         ),
-                        for (final c in CategoryService.instance.all)
+                        PopupMenuItem(
+                          value: ExpenseSort.dateAsc,
+                          child: Text(l.sortDateAsc),
+                        ),
+                        PopupMenuItem(
+                          value: ExpenseSort.amountDesc,
+                          child: Text(l.sortAmountDesc),
+                        ),
+                        PopupMenuItem(
+                          value: ExpenseSort.amountAsc,
+                          child: Text(l.sortAmountAsc),
+                        ),
+                        PopupMenuItem(
+                          value: ExpenseSort.category,
+                          child: Text(l.sortCategoryAsc),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                DateRangeFilter(
+                  value: _range ?? DateRangeValue.thisMonth(),
+                  onChanged: (v) {
+                    setState(() => _range = v);
+                    reload();
+                  },
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 40,
+                  child: AnimatedBuilder(
+                    animation: CategoryService.instance,
+                    builder: (context, _) {
+                      return ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
                           Padding(
                             padding: const EdgeInsets.only(right: 6),
                             child: ChoiceChip(
-                              avatar: Icon(c.icon, size: 16, color: c.color),
-                              label: Text(c.name),
-                              selected: _category == c.name,
+                              label: Text(l.all),
+                              selected: _category == null,
                               onSelected: (_) {
-                                setState(
-                                  () => _category = _category == c.name
-                                      ? null
-                                      : c.name,
-                                );
+                                setState(() => _category = null);
                                 reload();
                               },
                             ),
                           ),
-                      ],
-                    );
-                  },
+                          for (final c in CategoryService.instance.all)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: ChoiceChip(
+                                avatar: Icon(c.icon, size: 16, color: c.color),
+                                label: Text(c.name),
+                                selected: _category == c.name,
+                                onSelected: (_) {
+                                  setState(
+                                    () => _category = _category == c.name
+                                        ? null
+                                        : c.name,
+                                  );
+                                  reload();
+                                },
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
         if (!_selectionMode) const Divider(height: 1),
         Expanded(
           child: FutureBuilder<List<Expense>>(
@@ -349,8 +330,6 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
                       expense: ex,
                       selected: isSelected,
                       onTap: () {
-                        // Seçim modundayken normal tap toggle yapar;
-                        // değilse detay ekranına geçer.
                         if (_selectionMode) {
                           _toggleSelection(ex.id!);
                         } else {
@@ -370,11 +349,6 @@ class ExpenseListScreenState extends State<ExpenseListScreen> {
   }
 }
 
-/// Toplu seçim modunda gösterilen üst toolbar.
-///
-/// AppBar HomeScreen tarafından yönetildiği için burada doğrudan
-/// değiştiremiyoruz; onun yerine ekran içinde benzer görünüm sağlayan
-/// bir bar gösteriyoruz. Sol: çıkış X, orta: "X seçili", sağ: aksiyonlar.
 class _SelectionToolbar extends StatelessWidget {
   final int selectedCount;
   final VoidCallback onClose;
@@ -408,10 +382,7 @@ class _SelectionToolbar extends StatelessWidget {
               Expanded(
                 child: Text(
                   l.selectedCount(selectedCount),
-                  style: TextStyle(
-                    color: primary,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(color: primary, fontWeight: FontWeight.w700),
                 ),
               ),
               IconButton(

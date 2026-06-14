@@ -13,19 +13,12 @@ import '../../widgets/confirm_dialog.dart';
 import '../../widgets/empty_state.dart';
 import 'budget_form_screen.dart';
 
-/// Bütçe listesinin tek seferde yüklediği veriler — bütçeler ve bu
-/// ayki kategori bazlı toplamlar (doluluk hesabı için).
 class _BudgetListData {
   final List<Budget> budgets;
   final Map<String, double> monthlyTotals;
   const _BudgetListData(this.budgets, this.monthlyTotals);
 }
 
-/// Bütçe sekmesinin içeriği. Üstte [BudgetAlertBanner], altta her
-/// bütçe için [BudgetProgressCard] ile doluluk gösterimi.
-///
-/// HomeScreen GlobalKey üzerinden [openAddSmart] ile FAB'ı tetikler
-/// (mevcut kategorileri form'a iletir — dropdown elemesi için).
 class BudgetListScreen extends StatefulWidget {
   const BudgetListScreen({super.key});
 
@@ -85,8 +78,7 @@ class BudgetListScreenState extends State<BudgetListScreen> {
     final ok = await showConfirmDialog(
       context,
       title: _l.deleteBudgetTitle,
-      message:
-          _l.deleteBudgetMessage(budget.category),
+      message: _l.deleteBudgetMessage(budget.category),
     );
     if (!ok || !mounted) return;
     try {
@@ -94,9 +86,9 @@ class BudgetListScreenState extends State<BudgetListScreen> {
       reload();
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_l.notDeleted)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_l.notDeleted)));
     }
   }
 
@@ -164,7 +156,6 @@ class BudgetListScreenState extends State<BudgetListScreen> {
     );
   }
 
-  /// FAB için: mevcut bütçesi olan kategorileri çıkarıp [openAdd]'a iletir.
   Future<void> openAddSmart() async {
     final data = await _future;
     if (!mounted) return;

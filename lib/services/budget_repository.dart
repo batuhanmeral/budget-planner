@@ -2,24 +2,10 @@ import '../models/budget.dart';
 import '../utils/date_utils.dart';
 import 'database_service.dart';
 
-/// `budgets` tablosu için CRUD repository'si.
-///
-/// Insert/update tek bir [upsert] metodunda birleşir — UI tarafı
-/// "ekleme mi güncelleme mi" sorusunu sormak zorunda değil; tablo
-/// `UNIQUE(user_id, category)` kısıtıyla bu kararı kendisi verir.
 class BudgetRepository {
   BudgetRepository._();
   static final instance = BudgetRepository._();
 
-  /// Bütçe ekle veya güncelle (upsert).
-  ///
-  /// `ON CONFLICT(user_id, category)` aynı kullanıcı + aynı kategori
-  /// kombinasyonunda eski limit'i yenisiyle değiştirir. Bu sayede form
-  /// ekranı tek bir mantıkla çalışır: "Yemek için 500 TL koy" → ekleme
-  /// veya güncelleme otomatik karar verilir.
-  ///
-  /// `excluded.monthly_limit` SQLite'ın çakışan satır için yeni değeri
-  /// ifade eden özel referansı.
   Future<void> upsert({
     required int userId,
     required String category,
@@ -36,7 +22,6 @@ class BudgetRepository {
     );
   }
 
-  /// Bütçe silme. `user_id` koşulu sahiplik güvencesi.
   Future<int> delete({required int id, required int userId}) async {
     final db = await DatabaseService.instance.database;
     return db.delete(
@@ -46,7 +31,6 @@ class BudgetRepository {
     );
   }
 
-  /// Kullanıcının tüm bütçeleri (alfabetik kategori sırasıyla).
   Future<List<Budget>> getAllForUser(int userId) async {
     final db = await DatabaseService.instance.database;
     final rows = await db.query(
@@ -58,8 +42,6 @@ class BudgetRepository {
     return rows.map(Budget.fromMap).toList();
   }
 
-  /// Belirli bir kategori için bütçeyi döner (yoksa null). Form
-  /// ekranında "bu kategori için mevcut bütçe var mı?" sorusu için.
   Future<Budget?> getByCategoryForUser({
     required int userId,
     required String category,

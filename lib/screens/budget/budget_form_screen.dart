@@ -13,16 +13,6 @@ import '../../utils/validators.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/unsaved_changes_dialog.dart';
 
-/// Bütçe ekleme/düzenleme formu.
-///
-/// [initial] dolu → düzenleme; kategori değiştirilemez (chip olarak
-/// gösterilir). Null → ekleme; [existingCategories] içinde olan
-/// kategoriler dropdown'dan elenir, çünkü `UNIQUE(user_id, category)`
-/// var. Eğer tüm kategoriler kullanılmışsa form yerine bilgi mesajı
-/// gösterilir.
-///
-/// Submit'te repository [upsert] çağrılır — insert/update kararını
-/// SQLite verir.
 class BudgetFormScreen extends StatefulWidget {
   final Budget? initial;
   final List<String> existingCategories;
@@ -108,9 +98,9 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
       Navigator.of(context).pop(true);
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_l.notSaved)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_l.notSaved)));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -125,10 +115,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text(
-              l.allCategoriesUsedMsg,
-              textAlign: TextAlign.center,
-            ),
+            child: Text(l.allCategoriesUsedMsg, textAlign: TextAlign.center),
           ),
         ),
       );
@@ -143,7 +130,9 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
         if (ok && mounted) navigator.pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(_isEdit ? l.editBudgetTitle : l.newBudgetTitle)),
+        appBar: AppBar(
+          title: Text(_isEdit ? l.editBudgetTitle : l.newBudgetTitle),
+        ),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -164,7 +153,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
                     DropdownButtonFormField<AppCategory>(
                       initialValue: _category,
                       decoration: InputDecoration(
-                      labelText: l.categoryLabel,
+                        labelText: l.categoryLabel,
                         prefixIcon: Icon(Icons.category_outlined),
                       ),
                       items: [

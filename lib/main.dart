@@ -4,29 +4,21 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'app/app_routes.dart';
 import 'app/app_theme.dart';
+import 'app/currency_controller.dart';
 import 'app/locale_controller.dart';
 import 'app/theme_controller.dart';
 import 'services/database_service.dart';
 
-/// Uygulamanın giriş noktası.
-///
-/// `runApp` öncesi hazırlıklar:
-/// 1. Flutter binding'in başlaması
-/// 2. TR + EN tarih sembollerinin yüklenmesi
-/// 3. Kullanıcı tema + dil tercihinin yüklenmesi
-/// 4. SQLite veritabanının açılması (gerekirse oluşturulması)
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // İki locale için tarih sembollerini hazırla — kullanıcı dil
-  // değiştirdiğinde yeniden init gerektirmez.
   await initializeDateFormatting('tr_TR', null);
   await initializeDateFormatting('en_US', null);
 
-  // Locale + tema tercihlerini paralel yükle.
   await Future.wait([
     LocaleController.instance.load(),
     ThemeController.instance.load(),
+    CurrencyController.instance.load(),
   ]);
 
   final db = await DatabaseService.instance.database;
@@ -35,11 +27,6 @@ Future<void> main() async {
   runApp(const BudgetPlannerApp());
 }
 
-/// MaterialApp wrapper — tema, locale, navigasyon kurulumu.
-///
-/// Hem [ThemeController] hem [LocaleController] [ChangeNotifier] olduğu
-/// için ikisini [Listenable.merge] ile birleştirip [AnimatedBuilder] ile
-/// dinleriz. Herhangi biri değişince MaterialApp rebuild olur.
 class BudgetPlannerApp extends StatelessWidget {
   const BudgetPlannerApp({super.key});
 
@@ -49,6 +36,7 @@ class BudgetPlannerApp extends StatelessWidget {
       animation: Listenable.merge([
         ThemeController.instance,
         LocaleController.instance,
+        CurrencyController.instance,
       ]),
       builder: (context, _) {
         final l10n = LocaleController.instance.l10n;
@@ -67,6 +55,11 @@ class BudgetPlannerApp extends StatelessWidget {
           ],
           initialRoute: AppRoutes.splash,
           onGenerateRoute: AppRoutes.onGenerateRoute,
+          builder: (context, child) => AppReactiveScope(
+            localeCode: LocaleController.instance.locale.languageCode,
+            currencyCode: CurrencyController.instance.currency.code,
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
       },
     );

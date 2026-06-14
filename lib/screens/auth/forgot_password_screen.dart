@@ -6,14 +6,6 @@ import '../../l10n/app_l10n.dart';
 import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
 
-/// "Parolamı Unuttum" akışı — üç adımlı wizard.
-///
-/// 1. Kullanıcı adı → DB'den güvenlik sorusunu çek
-/// 2. Sorunun cevabını gir → minimum validasyon
-/// 3. Yeni parolayı belirle → sıfırla, login'e dön
-///
-/// Yanlış cevap girilirse 2. adımdan generic hata ile devam edilir
-/// (kullanıcı adı veya cevap doğru mu sızıntı yapılmaz).
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -35,8 +27,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool _obscure = true;
   bool _obscure2 = true;
 
-  /// Tüm metotlardan erişim için kısayol — `build` dışındaki helper'lar
-  /// `context.l10n`'a doğrudan erişebilsin.
   AppL10n get _l => LocaleController.instance.l10n;
 
   @override
@@ -75,12 +65,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  void _proceedToPassword() {
+  Future<void> _proceedToPassword() async {
     if (Validators.securityAnswer(_answerCtrl.text) != null) {
       _snack(_l.vAnswerMin);
       return;
     }
-    setState(() => _step = _Step.newPassword);
+    setState(() => _busy = true);
+    try {
+      await AuthService.instance.verifySecurityAnswer(
+        username: _usernameCtrl.text.trim(),
+        answer: _answerCtrl.text,
+      );
+      if (!mounted) return;
+      setState(() => _step = _Step.newPassword);
+    } on AuthException catch (e) {
+      _snack(e.message);
+    } catch (_) {
+      _snack(_l.unexpectedError);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _resetPassword() async {
@@ -140,7 +144,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         TextFormField(
           controller: _usernameCtrl,
           decoration: InputDecoration(
-              labelText: _l.usernameLabel,
+            labelText: _l.usernameLabel,
             prefixIcon: Icon(Icons.person_outline),
           ),
           autocorrect: false,
@@ -165,7 +169,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         TextFormField(
           controller: _answerCtrl,
           decoration: InputDecoration(
-              labelText: _l.securityAnswerLabel,
+            labelText: _l.securityAnswerLabel,
             prefixIcon: Icon(Icons.edit_outlined),
           ),
           autocorrect: false,
@@ -175,7 +179,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: _busy ? null : _proceedToPassword,
-          child: Text(_l.next),
+          child: _busy ? const _Spinner() : Text(_l.next),
         ),
       ],
     );

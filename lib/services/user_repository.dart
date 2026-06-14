@@ -3,20 +3,10 @@ import '../utils/date_utils.dart';
 import '../utils/string_utils.dart';
 import 'database_service.dart';
 
-/// `users` tablosu için CRUD operasyonlarını sarmalayan repository.
-///
-/// Yüksek seviye iş mantığı (parola hashleme, lockout vb.) AuthService
-/// içinde; bu sınıf yalnızca DB ile konuşur.
 class UserRepository {
   UserRepository._();
   static final instance = UserRepository._();
 
-  /// Yeni kullanıcı ekler. Username insert öncesi normalize edilir
-  /// (Türkçe karakter + lowercase) ve created_at UTC olarak set edilir.
-  ///
-  /// Eklenen satırın ID'sini döner. UNIQUE çakışması olursa sqflite
-  /// exception fırlatır — bunu AuthService.register zaten önceden
-  /// findByUsername ile kontrol ediyor.
   Future<int> insert(User user) async {
     final db = await DatabaseService.instance.database;
     final data = user.toMap()
@@ -25,9 +15,6 @@ class UserRepository {
     return db.insert('users', data);
   }
 
-  /// Username ile kullanıcı arar. Parametre normalize edilerek
-  /// karşılaştırılır — "İSTANBUL", "istanbul" ve "ISTANBUL" aynı kaydı
-  /// bulur.
   Future<User?> findByUsername(String username) async {
     final db = await DatabaseService.instance.database;
     final normalized = normalizeIdentifier(username);
@@ -41,8 +28,6 @@ class UserRepository {
     return User.fromMap(rows.first);
   }
 
-  /// Primary key ile kullanıcıyı bulur. Auto-login ve oturum tazeleme
-  /// için kullanılır.
   Future<User?> findById(int id) async {
     final db = await DatabaseService.instance.database;
     final rows = await db.query(
@@ -55,8 +40,6 @@ class UserRepository {
     return User.fromMap(rows.first);
   }
 
-  /// Parola hash'i ve salt'ı günceller. Yeni salt her parola
-  /// değişikliğinde üretilir (AuthService sorumluluğu).
   Future<int> updatePassword({
     required int userId,
     required String passwordHash,
@@ -71,7 +54,43 @@ class UserRepository {
     );
   }
 
-  /// Başarısız deneme sayısını günceller (brute-force koruma).
+  Future<int> updateUsername({
+    required int userId,
+    required String username,
+  }) async {
+    final db = await DatabaseService.instance.database;
+    return db.update(
+      'users',
+      {'username': normalizeIdentifier(username)},
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  Future<int> updateAvatarPath({
+    required int userId,
+    required String? avatarPath,
+  }) async {
+    final db = await DatabaseService.instance.database;
+    return db.update(
+      'users',
+      {'avatar_path': avatarPath},
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  Future<int> updateFullName({required int userId, String? fullName}) async {
+    final db = await DatabaseService.instance.database;
+    final trimmed = fullName?.trim();
+    return db.update(
+      'users',
+      {'full_name': (trimmed == null || trimmed.isEmpty) ? null : trimmed},
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+  }
+
   Future<int> updateFailedAttempts(int userId, int attempts) async {
     final db = await DatabaseService.instance.database;
     return db.update(
@@ -82,7 +101,6 @@ class UserRepository {
     );
   }
 
-  /// Kilit bitiş zamanını UTC olarak yazar. `null` verirse kilidi kaldırır.
   Future<int> updateLockout(int userId, DateTime? until) async {
     final db = await DatabaseService.instance.database;
     return db.update(
@@ -93,8 +111,6 @@ class UserRepository {
     );
   }
 
-  /// Başarılı giriş sonrası: hem deneme sayacını hem kilidi sıfırlar.
-  /// Tek bir UPDATE ile atomik şekilde yapılır.
   Future<int> resetFailedState(int userId) async {
     final db = await DatabaseService.instance.database;
     return db.update(
@@ -105,7 +121,6 @@ class UserRepository {
     );
   }
 
-  /// Kullanıcı silme — cascade ile harcamaları ve bütçeleri de düşer.
   Future<int> delete(int userId) async {
     final db = await DatabaseService.instance.database;
     return db.delete('users', where: 'id = ?', whereArgs: [userId]);

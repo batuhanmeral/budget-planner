@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../app/app_constants.dart';
+import '../../app/currency_controller.dart';
 import '../../app/locale_controller.dart';
 import '../../l10n/app_l10n.dart';
 import '../../models/recurring_expense.dart';
@@ -12,14 +13,6 @@ import '../../utils/money_utils.dart';
 import '../../utils/validators.dart';
 import '../../widgets/unsaved_changes_dialog.dart';
 
-/// Tekrarlayan harcama şablonu ekleme/düzenleme formu.
-///
-/// Alanlar: tutar (TR virgül), kategori (dropdown), ayın günü
-/// (1-31 slider/input), aktif toggle, opsiyonel not.
-///
-/// Ayın günü için NumberField yerine [Slider] kullanıyoruz — kullanıcı
-/// için daha hızlı seçim. 31'i seçince "30/31 olmayan aylarda son güne
-/// kaydırılır" notu gösterilir.
 class RecurringFormScreen extends StatefulWidget {
   final RecurringExpense? initial;
   const RecurringFormScreen({super.key, this.initial});
@@ -49,9 +42,7 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
     super.initState();
     final r = widget.initial;
     _amountCtrl = TextEditingController(
-      text: r == null
-          ? ''
-          : r.amount.toStringAsFixed(2).replaceAll('.', ','),
+      text: r == null ? '' : r.amount.toStringAsFixed(2).replaceAll('.', ','),
     );
     _noteCtrl = TextEditingController(text: r?.note ?? '');
     _category = r == null
@@ -114,9 +105,9 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
       Navigator.of(context).pop(true);
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_l.notSaved)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_l.notSaved)));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -156,7 +147,7 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
                     decoration: InputDecoration(
                       labelText: l.amountLabel,
                       prefixIcon: Icon(Icons.payments_outlined),
-                      suffixText: AppStrings.currencySymbol,
+                      suffixText: CurrencyController.instance.symbol,
                     ),
                     validator: Validators.moneyAmount,
                   ),
@@ -254,7 +245,9 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
                     contentPadding: EdgeInsets.zero,
                     title: Text(l.activeLabel),
                     subtitle: Text(
-                      _active ? l.recurringActiveSubtitle : l.recurringPassiveSubtitle,
+                      _active
+                          ? l.recurringActiveSubtitle
+                          : l.recurringPassiveSubtitle,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     value: _active,

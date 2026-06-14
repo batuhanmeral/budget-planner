@@ -2,12 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../app/locale_controller.dart';
 
-/// Genel amaçlı onay diyalogu helper'ı.
-///
-/// Silme gibi geri alınamaz işlemler için kullanılır. `destructive`
-/// true (varsayılan) onay butonunu kırmızı yapar.
-///
-/// Buton metinleri verilmezse aktif dile göre varsayılanlar kullanılır.
 Future<bool> showConfirmDialog(
   BuildContext context, {
   required String title,

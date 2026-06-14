@@ -6,19 +6,8 @@ import '../../services/auth_service.dart';
 import '../budget/budget_list_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../expenses/expense_list_screen.dart';
+import '../income/income_list_screen.dart';
 
-/// Uygulamanın ana iskeleti — login sonrası buraya gelinir.
-///
-/// Üç sekme: Özet (Dashboard), Harcamalar, Bütçe. Sekmeler
-/// [IndexedStack] içinde tutulur — sekme değişiminde state korunur
-/// (kullanıcı filtre/arama girdisini kaybetmez).
-///
-/// FAB sekmeye göre değişir: Harcamalar → ekle, Bütçe → ekle, Dashboard → yok.
-/// AppBar'da ayarlar ikonu; ayarlar'dan dönüldüğünde sekmeler reload edilir
-/// (silinen veriler yansısın diye).
-///
-/// Korumalı ekran kuralı: `currentUser == null` olursa hot-restart
-/// senaryosunda login'e geri yönlendirir.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -30,18 +19,20 @@ class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
   final _dashboardKey = GlobalKey<DashboardScreenState>();
   final _expensesKey = GlobalKey<ExpenseListScreenState>();
+  final _incomeKey = GlobalKey<IncomeListScreenState>();
   final _budgetKey = GlobalKey<BudgetListScreenState>();
 
   void _onTabChange(int i) {
     setState(() => _index = i);
     if (i == 0) _dashboardKey.currentState?.reload();
-    if (i == 2) _budgetKey.currentState?.reload();
+    if (i == 2) _incomeKey.currentState?.reload();
+    if (i == 3) _budgetKey.currentState?.reload();
   }
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
-    final titles = [l.tabDashboard, l.tabExpenses, l.tabBudget];
+    final titles = [l.tabDashboard, l.tabExpenses, l.tabIncome, l.tabBudget];
     final user = AuthService.instance.currentUser;
     if (user == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -64,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (!mounted) return;
               _dashboardKey.currentState?.reload();
               _expensesKey.currentState?.reload();
+              _incomeKey.currentState?.reload();
               _budgetKey.currentState?.reload();
             },
           ),
@@ -72,8 +64,12 @@ class _HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(
         index: _index,
         children: [
-          DashboardScreen(key: _dashboardKey),
+          DashboardScreen(
+            key: _dashboardKey,
+            onSeeAllExpenses: () => _onTabChange(1),
+          ),
           ExpenseListScreen(key: _expensesKey),
+          IncomeListScreen(key: _incomeKey),
           BudgetListScreen(key: _budgetKey),
         ],
       ),
@@ -83,6 +79,10 @@ class _HomeScreenState extends State<HomeScreen> {
           child: const Icon(Icons.add),
         ),
         2 => FloatingActionButton(
+          onPressed: () => _incomeKey.currentState?.openAdd(),
+          child: const Icon(Icons.add),
+        ),
+        3 => FloatingActionButton(
           onPressed: () => _budgetKey.currentState?.openAddSmart(),
           child: const Icon(Icons.add),
         ),
@@ -101,6 +101,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.list_alt_outlined),
             selectedIcon: const Icon(Icons.list_alt),
             label: l.tabExpenses,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.trending_up),
+            selectedIcon: const Icon(Icons.trending_up),
+            label: l.tabIncome,
           ),
           NavigationDestination(
             icon: const Icon(Icons.savings_outlined),

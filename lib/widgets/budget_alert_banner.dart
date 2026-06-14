@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../app/locale_controller.dart';
 
-/// Bir kategorinin bütçesi ile harcaması arasındaki orandan üretilen
-/// uyarı verisi. Ratio = harcama / limit.
-///
-/// [isOver] >= 1.0, [isWarning] 0.9-1.0 arasında.
 class BudgetAlert {
   final String category;
   final double ratio;
@@ -15,11 +11,6 @@ class BudgetAlert {
   bool get isWarning => !isOver && ratio >= 0.9;
 }
 
-/// Dashboard ve bütçe listesinin üstünde gösterilen uyarı banner'ı.
-///
-/// Aşılan bütçeler varsa kırmızı, yoksa %90 üstü varsa turuncu banner.
-/// Hiçbir uyarı yoksa boş widget döner — ekranda yer kaplamaz.
-/// Birden fazla kategori varsa adlar virgülle birleştirilir.
 class BudgetAlertBanner extends StatelessWidget {
   final List<BudgetAlert> alerts;
 

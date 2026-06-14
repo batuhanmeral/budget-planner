@@ -1,4 +1,4 @@
-import 'package:budget_planner/utils/string_utils.dart';
+import 'package:balancio/utils/string_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

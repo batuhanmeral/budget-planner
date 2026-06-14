@@ -5,20 +5,20 @@ import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../utils/validators.dart';
 
-/// Yeni özel kategori ekleme diyalogu.
-///
-/// Ad alanı + ikon ızgarası + renk paleti. Submit'te [CategoryService]'e
-/// eklenir; başarılıysa `true` ile pop olur, çakışma varsa SnackBar.
-Future<bool> showCategoryFormDialog(BuildContext context) async {
+Future<bool> showCategoryFormDialog(
+  BuildContext context, {
+  String kind = CategoryService.kindExpense,
+}) async {
   final result = await showDialog<bool>(
     context: context,
-    builder: (_) => const _CategoryFormDialog(),
+    builder: (_) => _CategoryFormDialog(kind: kind),
   );
   return result ?? false;
 }
 
 class _CategoryFormDialog extends StatefulWidget {
-  const _CategoryFormDialog();
+  final String kind;
+  const _CategoryFormDialog({required this.kind});
 
   @override
   State<_CategoryFormDialog> createState() => _CategoryFormDialogState();
@@ -44,16 +44,16 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
 
     setState(() => _busy = true);
     try {
-      // Çakışma önce sorulur — daha temiz hata mesajı için.
       final exists = await CategoryService.instance.nameExists(
         userId: user.id!,
         name: _nameCtrl.text,
+        kind: widget.kind,
       );
       if (exists) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.errCategoryExists)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.errCategoryExists)));
         return;
       }
       await CategoryService.instance.addCustom(
@@ -61,14 +61,15 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
         name: _nameCtrl.text,
         icon: _icon,
         color: _color,
+        kind: widget.kind,
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.errCategoryNotAdded)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.errCategoryNotAdded)));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -78,73 +79,75 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(context.l10n.newCategoryTitle),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Önizleme
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(_icon, color: _color, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        _nameCtrl.text.trim().isEmpty
-                            ? context.l10n.preview
-                            : _nameCtrl.text.trim(),
-                        style: TextStyle(
-                          color: _color,
-                          fontWeight: FontWeight.w600,
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(_icon, color: _color, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          _nameCtrl.text.trim().isEmpty
+                              ? context.l10n.preview
+                              : _nameCtrl.text.trim(),
+                          style: TextStyle(
+                            color: _color,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameCtrl,
-                decoration: InputDecoration(
-                  labelText: context.l10n.categoryNameLabel,
-                  prefixIcon: const Icon(Icons.label_outline),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _nameCtrl,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.categoryNameLabel,
+                    prefixIcon: const Icon(Icons.label_outline),
+                  ),
+                  maxLength: 20,
+                  onChanged: (_) => setState(() {}),
+                  validator: (v) {
+                    final r = Validators.requiredField(v);
+                    if (r != null) return r;
+                    return Validators.maxLength(v, 20);
+                  },
                 ),
-                maxLength: 20,
-                onChanged: (_) => setState(() {}),
-                validator: (v) {
-                  final r = Validators.requiredField(v);
-                  if (r != null) return r;
-                  return Validators.maxLength(v, 20);
-                },
-              ),
-              const SizedBox(height: 8),
-              _SectionLabel(context.l10n.iconLabel),
-              const SizedBox(height: 8),
-              _IconGrid(
-                value: _icon,
-                color: _color,
-                onChanged: (v) => setState(() => _icon = v),
-              ),
-              const SizedBox(height: 16),
-              _SectionLabel(context.l10n.colorLabel),
-              const SizedBox(height: 8),
-              _ColorGrid(
-                value: _color,
-                onChanged: (v) => setState(() => _color = v),
-              ),
-            ],
+                const SizedBox(height: 8),
+                _SectionLabel(context.l10n.iconLabel),
+                const SizedBox(height: 8),
+                _IconGrid(
+                  value: _icon,
+                  color: _color,
+                  onChanged: (v) => setState(() => _icon = v),
+                ),
+                const SizedBox(height: 16),
+                _SectionLabel(context.l10n.colorLabel),
+                const SizedBox(height: 8),
+                _ColorGrid(
+                  value: _color,
+                  onChanged: (v) => setState(() => _color = v),
+                ),
+              ],
+            ),
           ),
         ),
       ),

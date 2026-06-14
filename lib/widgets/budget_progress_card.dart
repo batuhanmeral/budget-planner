@@ -5,14 +5,6 @@ import '../app/locale_controller.dart';
 import '../utils/formatters.dart';
 import 'category_chip.dart';
 
-/// Bir bütçenin doluluk durumunu gösteren kart.
-///
-/// Üstte kategori chip + durum ikonu + edit/delete butonları.
-/// Ortada [LinearProgressIndicator] — renk eşikleri:
-/// - %0-90: kategori rengi (normal)
-/// - %90-100: turuncu (uyarı)
-/// - %100+: kırmızı (aşıldı)
-/// Altta: "harcanan / limit" ve "kalan X TL" / "Limit aşıldı".
 class BudgetProgressCard extends StatelessWidget {
   final AppCategory category;
   final double spent;

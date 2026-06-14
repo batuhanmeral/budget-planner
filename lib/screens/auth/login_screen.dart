@@ -3,16 +3,10 @@ import 'package:flutter/material.dart';
 import '../../app/locale_controller.dart';
 import '../../app/app_routes.dart';
 import '../../services/auth_service.dart';
+import '../../services/recurring_expense_runner.dart';
+import '../../services/recurring_income_runner.dart';
 import '../../utils/validators.dart';
 
-/// Giriş ekranı — kullanıcı adı + parola.
-///
-/// Form validate edildikten sonra [AuthService.login] çağrılır;
-/// [AuthException] yakalanır ve mesaj SnackBar ile gösterilir
-/// (yanlış parola, kilitli hesap, vb.).
-///
-/// Altta "Parolamı Unuttum" ve "Kayıt Ol" linkleri. Parola alanında
-/// göster/gizle toggle (göz ikonu).
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -38,10 +32,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _busy = true);
     try {
-      await AuthService.instance.login(
+      final user = await AuthService.instance.login(
         username: _usernameCtrl.text,
         password: _passwordCtrl.text,
       );
+      await RecurringExpenseRunner.runForUser(user.id!);
+      await RecurringIncomeRunner.runForUser(user.id!);
       if (!mounted) return;
       Navigator.of(
         context,

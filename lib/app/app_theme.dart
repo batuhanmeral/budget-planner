@@ -1,25 +1,17 @@
 import 'package:flutter/material.dart';
 
-/// Uygulamanın Light ve Dark temalarını üretir.
-///
-/// Material 3 (`useMaterial3: true`) ve [ColorScheme.fromSeed] kullanır;
-/// tek bir `primary` renkten Material'ın renk sistemi otomatik türetilir.
-///
-/// Card, InputDecoration ve ElevatedButton için merkezi stiller burada
-/// tanımlanır — ekran kodlarının kendi stil tekrarlarını yapmasına gerek
-/// kalmaz.
 class AppTheme {
   AppTheme._();
 
-  /// Marka rengi: canlı teal. ColorScheme seed olarak verilir.
   static const primary = Color(0xFF0EA5A4);
 
-  // Arka plan tonları (slate paleti) — Material default'tan biraz daha
-  // koyu, modern bir his için.
   static const lightBackground = Color(0xFFF8FAFC);
   static const darkBackground = Color(0xFF0F172A);
 
-  /// Aydınlık tema fabrikası.
+  // Alt panel: arka planla aynı tonda, 1-2 ton daha koyu.
+  static const lightNavBar = Color(0xFFE8EDF3);
+  static const darkNavBar = Color(0xFF0A0F1E);
+
   static ThemeData light() {
     final scheme = ColorScheme.fromSeed(
       seedColor: primary,
@@ -41,6 +33,26 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(color: Colors.grey.shade200),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: lightNavBar,
+        indicatorColor: primary.withValues(alpha: 0.18),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        labelTextStyle: WidgetStateProperty.all(
+          const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF334155),
+          ),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? const Color(0xFF0F172A)
+                : const Color(0xFF64748B),
+          ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -73,8 +85,6 @@ class AppTheme {
     );
   }
 
-  /// Karanlık tema fabrikası — Light ile aynı yapı, dark surface'lar.
-  /// Kategori renkleri her iki temada da yeterli kontrasta sahip.
   static ThemeData dark() {
     final scheme = ColorScheme.fromSeed(
       seedColor: primary,
@@ -96,6 +106,26 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: Color(0xFF334155)),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: darkNavBar,
+        indicatorColor: primary.withValues(alpha: 0.30),
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        labelTextStyle: WidgetStateProperty.all(
+          const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? Colors.white
+                : const Color(0xFF94A3B8),
+          ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
