@@ -1,10 +1,10 @@
-import 'package:balancio/models/income.dart';
-import 'package:balancio/models/user.dart';
-import 'package:balancio/services/database_service.dart';
-import 'package:balancio/services/expense_repository.dart';
-import 'package:balancio/models/expense.dart';
-import 'package:balancio/services/income_repository.dart';
-import 'package:balancio/services/user_repository.dart';
+import 'package:budget_planner/models/income.dart';
+import 'package:budget_planner/models/user.dart';
+import 'package:budget_planner/services/database_service.dart';
+import 'package:budget_planner/services/expense_repository.dart';
+import 'package:budget_planner/models/expense.dart';
+import 'package:budget_planner/services/income_repository.dart';
+import 'package:budget_planner/services/user_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 

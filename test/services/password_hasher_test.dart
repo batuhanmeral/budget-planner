@@ -1,4 +1,4 @@
-import 'package:balancio/services/password_hasher.dart';
+import 'package:budget_planner/services/password_hasher.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

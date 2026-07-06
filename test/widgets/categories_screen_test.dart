@@ -1,6 +1,6 @@
-import 'package:balancio/screens/settings/categories_screen.dart';
-import 'package:balancio/services/auth_service.dart';
-import 'package:balancio/services/database_service.dart';
+import 'package:budget_planner/screens/settings/categories_screen.dart';
+import 'package:budget_planner/services/auth_service.dart';
+import 'package:budget_planner/services/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

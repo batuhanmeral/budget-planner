@@ -1,4 +1,4 @@
-import 'package:balancio/utils/validators.dart';
+import 'package:budget_planner/utils/validators.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

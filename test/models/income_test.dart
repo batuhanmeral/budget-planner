@@ -1,4 +1,4 @@
-import 'package:balancio/models/income.dart';
+import 'package:budget_planner/models/income.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.balancio"
+    namespace = "com.example.budget_planner"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

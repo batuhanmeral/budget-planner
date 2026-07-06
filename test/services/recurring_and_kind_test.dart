@@ -1,10 +1,10 @@
-import 'package:balancio/models/custom_category.dart';
-import 'package:balancio/models/recurring_income.dart';
-import 'package:balancio/models/user.dart';
-import 'package:balancio/services/custom_category_repository.dart';
-import 'package:balancio/services/database_service.dart';
-import 'package:balancio/services/recurring_income_repository.dart';
-import 'package:balancio/services/user_repository.dart';
+import 'package:budget_planner/models/custom_category.dart';
+import 'package:budget_planner/models/recurring_income.dart';
+import 'package:budget_planner/models/user.dart';
+import 'package:budget_planner/services/custom_category_repository.dart';
+import 'package:budget_planner/services/database_service.dart';
+import 'package:budget_planner/services/recurring_income_repository.dart';
+import 'package:budget_planner/services/user_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
