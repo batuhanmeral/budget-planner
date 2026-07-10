@@ -4,7 +4,7 @@
 
 Balancio is a personal finance app that helps you record where your money goes and comes from, set monthly budget limits, and review your spending habits at a glance. All data stays on the device, passwords are hashed, and the app works fully offline.
 
-## 🚀 Features
+## Features
 
 - **Expenses & income** — full add/edit/delete with categories, sources, notes, and dates.
 - **Search & filter** — note search, category/source filters, date ranges, sorting, and a calendar view.
@@ -16,7 +16,7 @@ Balancio is a personal finance app that helps you record where your money goes a
 - **Profile** — avatar from camera/gallery, editable username and full name.
 - **Themes & languages** — light/dark/system theme, instant TR ↔ EN switching, and currency selection, all persisted.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technologies |
 | --- | --- |
@@ -28,9 +28,9 @@ Balancio is a personal finance app that helps you record where your money goes a
 | **Media** | `image_picker` |
 | **Tooling** | `flutter_lints`, `flutter_test`, `sqflite_common_ffi` |
 
-## 📦 Getting Started
+## Installation
 
-Requires the Flutter **stable** channel (Dart ≥ 3.11) and a connected device or emulator.
+Requires Flutter **stable** (Dart ≥ 3.11).
 
 ```bash
 git clone https://github.com/batuhanmeral/Balancio.git
@@ -39,18 +39,7 @@ flutter pub get
 flutter run
 ```
 
-Build a release:
-
-```bash
-flutter build apk   # Android
-flutter build ios   # iOS (requires a signing profile)
-```
-
-> Avatar capture needs camera/photo permissions, already declared for Android and iOS.
-
-## 💡 Usage
-
-On first launch a short onboarding runs once, then you register with a full name, username, password, and security question (used for password recovery). Auto-login remembers your session afterward.
+For a release build, use `flutter build apk` (Android) or `flutter build ios` (iOS).
 
 ### Project structure
 
@@ -72,14 +61,24 @@ flutter analyze
 flutter test
 ```
 
-Every query is scoped with `WHERE user_id = ?`, account deletion cascades via `ON DELETE CASCADE`, and the schema evolves through versioned migrations so data is preserved across releases.
+## Screenshots
 
-## 📸 Screenshots
+<p align="center">
+  <img src="docs/Screenshot_1.jpg" alt="Overview screen" width="320" />
+  <br />
+  <em>Overview — net balance, charts, and recent activity</em>
+</p>
+<p align="center">
+  <img src="docs/Screenshot_2.jpg" alt="Income screen" width="320" />
+  <br />
+  <em>Income — income entries with sources and filters</em>
+</p>
+<p align="center">
+  <img src="docs/Screenshot_3.jpg" alt="Expenses screen" width="320" />
+  <br />
+  <em>Expenses — expense list with categories and search</em>
+</p>
 
-| Dashboard | Charts & Insights | Expenses |
-| :---: | :---: | :---: |
-| ![Dashboard](docs/Screenshot_1.jpg) | ![Charts](docs/Screenshot_2.jpg) | ![Expenses](docs/Screenshot_3.jpg) |
+## License
 
-## 📄 License
-
-MIT License. © 2026 Batuhan Meral. Built as a Mobile Application Development course project.
+This project is licensed under the [MIT License](LICENSE). © 2026 Batuhan Meral.
